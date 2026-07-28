@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B20364E0-E13A-4388-8878-6418B4994AE0}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>SmartMRT_DashCombine_Setup</RootNamespace>
+    <AssemblyName>SmartMRT_DashCombine_Setup</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ConfigDashboard.cs" />
+    <Compile Include="ConnectionMain.cs" />
+    <Compile Include="ConnectionTester.cs" />
+    <Compile Include="DashboardConfigManager.cs" />
+    <Compile Include="FrmUnlockLogin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmUnlockLogin.Designer.cs">
+      <DependentUpon>FrmUnlockLogin.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LineInfo.cs" />
+    <Compile Include="MRT_DashCombine_Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MRT_DashCombine_Form.Designer.cs">
+      <DependentUpon>MRT_DashCombine_Form.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PasswordEncryption.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UC_LineCard.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UC_LineCard.Designer.cs">
+      <DependentUpon>UC_LineCard.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UC_Line_ModuleCard.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UC_Line_ModuleCard.Designer.cs">
+      <DependentUpon>UC_Line_ModuleCard.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UC_Line_ViewCard.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UC_Line_ViewCard.Designer.cs">
+      <DependentUpon>UC_Line_ViewCard.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UC_MRT_DashCombine_About.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UC_MRT_DashCombine_About.Designer.cs">
+      <DependentUpon>UC_MRT_DashCombine_About.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UC_MRT_DashCombine_DB.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UC_MRT_DashCombine_DB.Designer.cs">
+      <DependentUpon>UC_MRT_DashCombine_DB.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UC_MRT_DashCombine_Home.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UC_MRT_DashCombine_Home.Designer.cs">
+      <DependentUpon>UC_MRT_DashCombine_Home.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UC_MRT_DashCombine_License.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UC_MRT_DashCombine_License.Designer.cs">
+      <DependentUpon>UC_MRT_DashCombine_License.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UC_MRT_DashCombine_Logs.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UC_MRT_DashCombine_Logs.Designer.cs">
+      <DependentUpon>UC_MRT_DashCombine_Logs.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UC_MRT_DashCombine_Service.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UC_MRT_DashCombine_Service.Designer.cs">
+      <DependentUpon>UC_MRT_DashCombine_Service.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UC_MRT_DashCombine_Setup.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UC_MRT_DashCombine_Setup.Designer.cs">
+      <DependentUpon>UC_MRT_DashCombine_Setup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UC_MRT_DashCombine_View.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UC_MRT_DashCombine_View.Designer.cs">
+      <DependentUpon>UC_MRT_DashCombine_View.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="FrmUnlockLogin.resx">
+      <DependentUpon>FrmUnlockLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MRT_DashCombine_Form.resx">
+      <DependentUpon>MRT_DashCombine_Form.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="UC_LineCard.resx">
+      <DependentUpon>UC_LineCard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UC_Line_ModuleCard.resx">
+      <DependentUpon>UC_Line_ModuleCard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UC_Line_ViewCard.resx">
+      <DependentUpon>UC_Line_ViewCard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UC_MRT_DashCombine_About.resx">
+      <DependentUpon>UC_MRT_DashCombine_About.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UC_MRT_DashCombine_DB.resx">
+      <DependentUpon>UC_MRT_DashCombine_DB.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UC_MRT_DashCombine_Home.resx">
+      <DependentUpon>UC_MRT_DashCombine_Home.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UC_MRT_DashCombine_License.resx">
+      <DependentUpon>UC_MRT_DashCombine_License.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UC_MRT_DashCombine_Setup.resx">
+      <DependentUpon>UC_MRT_DashCombine_Setup.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UC_MRT_DashCombine_View.resx">
+      <DependentUpon>UC_MRT_DashCombine_View.cs</DependentUpon>
+    </EmbeddedResource>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
