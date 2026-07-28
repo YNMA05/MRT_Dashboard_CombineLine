@@ -11,10 +11,7 @@ import { useEffect, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 
 export default function Dashboard() {
-    const [dashboardData, setDashboardData] = useState({
-    totalOutput: 0,
-    time: ""
-    });
+    const [dashboardData, setDashboardData] = useState([]);
     useEffect(() => {
 
 const HUB_URL = `http://${window.location.hostname}:5000/hubs/MRTdashCombine`;
@@ -25,11 +22,8 @@ const connection = new signalR.HubConnectionBuilder()
     .build();
 
         connection.on("DashboardUpdate", (data) => {
-
             console.log("Received:", data);
-
             setDashboardData(data);
-
         });
 
         connection.start()
@@ -43,7 +37,20 @@ const connection = new signalR.HubConnectionBuilder()
         };
 
     }, []);
+    useEffect(() => {
+    console.log("Dashboard changed:", dashboardData);
 
+    const outputLines = dashboardData.filter(line =>
+        line.moduleCode === "V_PRODOUTPUT"
+    );
+
+    console.log("Output lines:", outputLines);
+
+}, [dashboardData]);
+    const productionKpi = dashboardData.find(
+        x => x.moduleCode === "V_PRODOUTPUT"
+    );
+    
     const data = [
     {
         name: "LINE 10",
@@ -221,10 +228,11 @@ const connection = new signalR.HubConnectionBuilder()
             {/* PUSH KPI TO BOTTOM */}
             <div className="mt-4 xl:mt-auto">
 
-                <KPISection
-    totalOutput={dashboardData.totalOutput}
+<KPISection
+    totalOutput={
+        productionKpi?.data?.totalOutput ?? 0
+    }
 />
-
             </div>
 
 

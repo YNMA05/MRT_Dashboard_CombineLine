@@ -14,6 +14,8 @@ public class MRTPollingService : BackgroundService
     private readonly IHubContext<MRTHub> _hub;
     private readonly ILogger<MRTPollingService> _logger;
     private readonly MRT_DashRepository _repository;
+    private List<LineConfig> _lines = new();
+
 
     public MRTPollingService(
         IHubContext<MRTHub> hub,
@@ -23,6 +25,8 @@ public class MRTPollingService : BackgroundService
         _hub = hub;
         _logger = logger;
         _repository = repository;
+
+        _logger.LogInformation("MRTPollingService CREATED");
     }
 
 
@@ -101,28 +105,192 @@ public class MRTPollingService : BackgroundService
 
     //    } while (await timer.WaitForNextTickAsync(stoppingToken));
     //}
+    //protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    //{
+    //    using var timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
+
+    //    do
+    //    {
+    //        try
+    //        {
+    //            string globalConn = MRT_ConnectionMain.GetGlobalDBConnection(
+    //                "192.168.0.126", "SQLEXPRESS");
+
+    //            // ── 1. Fetch flat rows (one per line-module pair) ──────────
+    //            var records = await _repository.GetLineConfigsAsync(globalConn);
+
+    //            // ── 2. Group into LineConfig (one per line, modules merged) ─
+    //            var result = new List<LineConfig>(); // ← was never declared before!
+
+    //            foreach (var g in records.GroupBy(x => x.LineId))
+    //            {
+    //                var line = new LineConfig
+    //                {
+    //                    LineId = g.Key,
+    //                    LineNum = g.First().LineNum,
+    //                    IpAddress = g.First().IpAddress,
+    //                    StatusActive = g.First().StatusActive
+    //                };
+
+    //                // Collect all module codes this line belongs to
+    //                line.Modules.AddRange(
+    //                    g.Where(x => !string.IsNullOrEmpty(x.ModuleCode))
+    //                     .Select(x => x.ModuleCode)
+    //                     .Distinct());
+
+    //                result.Add(line);
+    //            }
+
+    //            // ── 3. Build dashboard data per line ───────────────────────
+    //            var dashboards = new List<LineDashboardData>();
+
+    //            foreach (var line in result.Where(x => x.StatusActive))
+    //            {
+    //                if (line.Modules.Contains("V_PRODOUTPUT"))
+    //                {
+    //                    var dashboard = await BuildProductionOutput(line);
+    //                    dashboards.Add(dashboard);
+    //                }
+
+    //                //if (line.Modules.Contains("V_KPI"))
+    //                //{
+    //                //    var kpi = await BuildKPI(line);
+    //                //    dashboards.Add(kpi);
+    //                //}
+
+    //                //if (line.Modules.Contains("V_TARGET"))
+    //                //{
+    //                //    var target = await BuildTarget(line);
+    //                //    dashboards.Add(target);
+    //                //}
+    //            }
+
+    //            // ── 4. Push to clients ─────────────────────────────────────
+    //            // Each LineDashboardData.Modules tells the front-end
+    //            // which module panel this line should appear in
+    //            await _hub.Clients.All.SendAsync(
+    //                "DashboardUpdate",
+    //                dashboards,
+    //                stoppingToken);
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            _logger.LogError(ex, "Dashboard polling failed.");
+    //        }
+
+    //    } while (await timer.WaitForNextTickAsync(stoppingToken));
+    //}
+
+    private List<LineConfig> GetModuleLines(
+    List<LineConfig> lines,
+    string moduleCode)
+    {
+        return lines
+            .Where(x =>
+                x.StatusActive &&
+                x.Modules.Contains(moduleCode))
+            .ToList();
+    }
+
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
+        File.AppendAllText(
+        @"C:\Temp\SmartMRT_Service.log",
+        $"{DateTime.Now} Execute started\r\n");
+        _logger.LogInformation("MRTPollingService ExecuteAsync STARTED");
+
+        using var timer = new PeriodicTimer(PollInterval);
 
         do
         {
+            File.AppendAllText(
+           @"C:\Temp\SmartMRT_Service.log",
+           $"{DateTime.Now} Tick\r\n");
             try
             {
-                string dashboardConn =
-                    MRT_ConnectionMain.GetGlobalDBConnection(
-                        "192.168.0.126",
-                        "SQLEXPRESS");
+                _logger.LogInformation("MRTPollingService tick");
 
-                var lines = await _repository.GetLineConfigsAsync(dashboardConn);
+                string globalConn = MRT_ConnectionMain.GetGlobalDBConnection(
+                    "192.168.0.126", "SQLEXPRESS");
+                var records = await _repository.GetLineConfigsAsync(globalConn);
 
-                List<LineDashboardData> dashboards = new();
 
-                foreach (var line in lines.Where(x => x.StatusActive))
+                var lines = records
+                    .GroupBy(x => x.LineId)
+                    .Select(g => new LineConfig
+                    {
+                        LineId = g.Key,
+                        LineNum = g.First().LineNum,
+                        IpAddress = g.First().IpAddress,
+                        StatusActive = g.First().StatusActive,
+                        Modules = g
+                            .Where(x => !string.IsNullOrEmpty(x.ModuleCode))
+                            .Select(x => x.ModuleCode)
+                            .Distinct()
+                            .ToList()
+                    })
+                    .ToList();
+
+
+                var dashboards = new List<DashboardData>();
+
+
+                // ============================
+                // V_PRODOUTPUT KPI
+                // ============================
+
+                var outputLines = GetModuleLines(lines, "V_PRODOUTPUT");
+
+
+                int totalOutput = 0;
+
+
+                foreach (var line in outputLines)
                 {
-                    dashboards.Add(
-                        await _repository.BuildDashboardDataAsync(line));
+                    var output =
+                        await _repository.BuildProductionOutput(line);
+
+                    totalOutput += output.TotalOutput;
                 }
+
+
+                dashboards.Add(new DashboardData
+                {
+                    ModuleCode = "V_PRODOUTPUT",
+                    Data = new
+                    {
+                        TotalOutput = totalOutput
+                    },
+                    UpdateTime = DateTime.Now
+                });
+
+                // ============================
+                // V_PRODCHART
+                // ============================
+
+                var chartLines =GetModuleLines(lines, "V_PRODCHART");
+
+
+                var chartData = new List<ProductionChartData>();
+
+                foreach (var line in chartLines)
+                {
+                    var chart =
+                        await _repository.BuildProductionChart(line);
+
+                    chartData.Add(chart);
+                }
+
+
+                dashboards.Add(new DashboardData
+                {
+                    ModuleCode = "V_PRODCHART",
+                    Data = chartData,
+                    UpdateTime = DateTime.Now
+                });
+
+
 
                 await _hub.Clients.All.SendAsync(
                     "DashboardUpdate",
@@ -131,9 +299,15 @@ public class MRTPollingService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Polling failed.");
+                _logger.LogError(ex, "Dashboard polling failed");
+                File.AppendAllText(
+                @"C:\Temp\SmartMRT_Service.log",
+                ex.ToString());
             }
 
-        } while (await timer.WaitForNextTickAsync(stoppingToken));
+        }
+
+        while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 }
+
