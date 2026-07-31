@@ -32,6 +32,7 @@
             $"Server={server}\\{instance};" +
             $"Database=Dashboard_GlobalDB;" +
             $"Integrated Security=True;" +
+            $"Connect Timeout=2;" +
             $"TrustServerCertificate=True;";
     }
     public static string GetLineGlobalDBConnection(
@@ -42,6 +43,7 @@
             $"Database=ONLINE_GLOBALDB;" +
             $"User ID=sa;" +
             $"Password=1234;" +
+            $"Connect Timeout=2;"+
             $"TrustServerCertificate=True;";
     }
     public static string GetLineLocalDBConnection(
@@ -52,6 +54,7 @@
             $"Database=ONLINE_LOCALDB;" +
             $"User ID=sa;" +
             $"Password=1234;" +
+            $"Connect Timeout=2;" +
             $"TrustServerCertificate=True;";
     }
 }

@@ -5,23 +5,42 @@ export default function Header() {
 
     return (
 
-        <div className="flex justify-between items-center mb-1">
+      <div className="flex items-center justify-between mb-3">
 
-            <h1
-                className="
-                    text-6xl
-                    font-bold
-                    text-cyan-300
-                    drop-shadow-[0_0_15px_#00ffff]
-                "
-            >
-                Line Performance
+    {/* Left */}
+    <div className="flex items-center gap-4">
+
+        <img
+            src={smartmrt}
+            className="h-16 w-auto"
+            alt="SmartMRT"
+        />
+
+        <div>
+
+            <h1 className="
+                text-6xl
+                font-black
+                tracking-wide
+                text-cyan-300
+                drop-shadow-[0_0_20px_#00ffff]
+            ">
+                LINE PERFORMANCE
             </h1>
-    
-<div>
-    <Clock/>
-</div>
+
+            <p className="text-cyan-100 tracking-[0.35em] uppercase">
+                SmartMRT Dashboard
+            </p>
+
         </div>
+
+    </div>
+
+    {/* Right */}
+
+    <Clock/>
+
+</div>
 
     );
 }

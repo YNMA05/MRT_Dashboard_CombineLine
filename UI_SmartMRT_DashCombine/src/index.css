@@ -18,3 +18,12 @@
 ::-webkit-scrollbar-thumb:hover {
     background: #06b6d4;
 }
+
+@keyframes scan {
+    from {
+        left: -40%;
+    }
+    to {
+        left: 120%;
+    }
+}

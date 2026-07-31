@@ -4,14 +4,15 @@ export default function Footer() {
 
         <footer
             className="
+                h-full
                 flex
                 justify-between
                 items-center
+                px-3
                 text-sm
-                text-teal-300
+                text-gray-100
                 border-t
                 border-cyan-500/20
-                pt-3
             "
         >
 

@@ -6,7 +6,8 @@ import {
     YAxis,
     Tooltip,
     Legend,
-    Bar
+    Bar,
+    LabelList
 } from "recharts";
 
 export default function ProductionChart({ data }) {
@@ -29,23 +30,23 @@ export default function ProductionChart({ data }) {
     >
 <div className="h-[250px] md:h-[400px]">
     <ResponsiveContainer width="100%" height="100%">
-            <BarChart barCategoryGap="25%" barGap={2} data={data} margin={{top: 20,right: 20, left: 20,bottom: 20}} >
+            <BarChart barCategoryGap="25%" barGap={2} data={data} margin={{top: 10,right: 20, left: 20,bottom: 20}} >
 
                 {/* Put gradients here */}
                 <defs>
                     <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="rgb(70, 184, 192)" />
-                        <stop offset="100%" stopColor="#8fc2c9" />
+                        <stop offset="0%" stopColor="#57184e" />
+                        <stop offset="100%" stopColor="#db36c0" />
                     </linearGradient>
 
                     <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#0d72d1" />
-                        <stop offset="100%" stopColor="#1370c7" />
+                        <stop offset="0%" stopColor="#2d9c9c" />
+                        <stop offset="100%" stopColor="#63dcf1" />
                     </linearGradient>
 
                     <linearGradient id="redGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#8f81a8" />
-                        <stop offset="100%" stopColor="#4d4c88" />
+                        <stop offset="0%" stopColor="#0c1ae7" />
+                        <stop offset="100%" stopColor="#1c255c" />
                     </linearGradient>
      <filter id="barGlow">
         <feDropShadow
@@ -65,7 +66,8 @@ export default function ProductionChart({ data }) {
                     strokeDasharray="3 8"
                 />
                 <XAxis
-                dataKey={"name"}
+                   dataKey="lineNum"
+                    tickFormatter={(value) => `Line ${value}`}
                     axisLine={false}
                     tickLine={false}
                     tick={{ fill: "#ffffff", fontSize: 25 }}
@@ -100,33 +102,57 @@ export default function ProductionChart({ data }) {
                         </span>
                     )}
                 />
+            
+                <Bar
+                    dataKey="target"
+                    name = "Target"
+                    stackId="a"
+                    fill="url(#redGradient)"
+                    filter="url(#barGlow)"
+                    animationDuration={1200}
+                    animationEasing="ease-out"
+                    >
+                 <LabelList
+                dataKey="target"
+                position="center"
+                fill="#f0f4f5"
+                fontSize={25}
+            />      
+        </Bar>
 
                 <Bar
+                    dataKey="runningTarget"
+                    name = "Running Target"
+                    stackId="a"
+                    fill="url(#greenGradient)"
+                    filter="url(#barGlow)"
+                    animationDuration={1600}
+                    animationEasing="ease-out"
+                    >
+                 <LabelList
+                dataKey="runningTarget"
+                position="right"
+                fill="#f0f4f5"
+                fontSize={25}
+            />
+        </Bar>
+
+        <Bar
                 dataKey="output"
+                name = "Output"
                 stackId="a"
                 fill="url(#blueGradient)"
                 filter="url(#barGlow)"
                 animationDuration={1200}
                 animationEasing="ease-out"
-            />
-
-                <Bar
-                    dataKey="target"
-                    stackId="a"
-                    fill="url(#greenGradient)"
-                    filter="url(#barGlow)"
-                    animationDuration={1200}
-                    animationEasing="ease-out"
-                />
-
-                <Bar
-                    dataKey="defect"
-                    stackId="a"
-                    fill="url(#redGradient)"
-                    filter="url(#barGlow)"
-                    animationDuration={1600}
-                    animationEasing="ease-out"
-                />
+            >
+            <LabelList
+                dataKey="output"
+                position="center"
+                fill="#f0f4f5"
+                fontSize={25}
+            />      
+        </Bar>
 
             </BarChart>
         </ResponsiveContainer>

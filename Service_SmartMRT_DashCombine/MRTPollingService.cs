@@ -222,7 +222,8 @@ public class MRTPollingService : BackgroundService
                     {
                         LineId = g.Key,
                         LineNum = g.First().LineNum,
-                        IpAddress = g.First().IpAddress,
+                        MasterIpAddress = g.First().MasterIpAddress,
+                        LocalIpAddress = g.First().LocalIpAddress,
                         StatusActive = g.First().StatusActive,
                         Modules = g
                             .Where(x => !string.IsNullOrEmpty(x.ModuleCode))
@@ -235,7 +236,23 @@ public class MRTPollingService : BackgroundService
 
                 var dashboards = new List<DashboardData>();
 
+                foreach (var line in lines)
+                {
+                    line.IsOnline = await _repository.CheckLocalConnection(line);
+                }
 
+                var lineStatus = lines.Select(x => new
+                {
+                    LineNum = x.LineNum,
+                    IsOnline = x.IsOnline
+                }).ToList();
+
+                dashboards.Add(new DashboardData
+                {
+                    ModuleCode = "V_LINESTATUS",
+                    Data = lineStatus,
+                    UpdateTime = DateTime.Now
+                });
                 // ============================
                 // V_PRODOUTPUT KPI
                 // ============================
@@ -248,6 +265,12 @@ public class MRTPollingService : BackgroundService
 
                 foreach (var line in outputLines)
                 {
+                    if (!line.IsOnline)
+                    {
+                        _logger.LogWarning("Line {line} is offline.", line.LineNum);
+                        continue;
+                    }
+
                     var output =
                         await _repository.BuildProductionOutput(line);
 
@@ -276,8 +299,21 @@ public class MRTPollingService : BackgroundService
 
                 foreach (var line in chartLines)
                 {
+                    if (!line.IsOnline)
+                    {
+                        chartData.Add(new ProductionChartData
+                        {
+                            LineNum = line.LineNum,
+                            IsOnline = false
+                        });
+
+                        continue;
+                    }
+
                     var chart =
                         await _repository.BuildProductionChart(line);
+
+                    chart.IsOnline = true;
 
                     chartData.Add(chart);
                 }

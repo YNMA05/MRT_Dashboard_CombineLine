@@ -6,9 +6,11 @@ public class LineConfig
 
     public int LineNum { get; set; }
 
-    public string IpAddress { get; set; } = "";
+    public string MasterIpAddress { get; set; } = "";
+    public string LocalIpAddress { get; set; } = "";
 
     public bool StatusActive { get; set; }
+    public bool IsOnline { get; set; }
 
     public List<string> Modules { get; set; } = new();
 }
@@ -17,10 +19,13 @@ public class LineModuleRecord
 {
     public int LineId { get; set; }
     public int LineNum { get; set; }
-    public string IpAddress { get; set; } = "";
+    public string MasterIpAddress { get; set; } = "";
+    public string LocalIpAddress { get; set; } = "";
     public bool StatusActive { get; set; }
+    public bool IsOnline { get; set; }
     public string ModuleCode { get; set; } = "";
    // public List<string> Modules { get; set; } = new();
+
 }
 
 //public class LineDashboardData
@@ -67,32 +72,78 @@ public class RunningStyle
    // public List<StationOutput> Stations { get; set; } = new();
 }
 
-public class LineKpitotal
+public class ProductionChartData
 {
-    public string LineName { get; set; }
+    public int LineNum { get; set; }
 
     public int Output { get; set; }
 
     public int Target { get; set; }
 
-    public double Efficiency { get; set; }
+    public int RunningTarget { get; set; }
+    public int Defect { get; set; }
+
+    public int Loading { get; set; }
+
+    public decimal Efficiency { get; set; }
+    public bool IsOnline { get; set; }
 }
-public class LineKpi
+
+public class ProductionMetrics
 {
-    public int LineNum { get; set; }
-
-    public int Output { get; set; }
+    public int TotalOutput { get; set; }
+    public int Target { get; set; }
+    public int Defect { get; set; }
+    public decimal Efficiency { get; set; }
 }
 
-public record KpiSnapshot(
-    DateTime Timestamp,
-    KpiMetrics Metrics,
-    List<HourlyRevenue> RevenueByHour,
-    List<TopProduct> TopProducts
-);
+public class LocalDataBarChart
+{
+    public int TotalProduction { get; set; }
+    public int TotalLoading { get; set; }
+    public int Defect { get; set; }
+    public int Shift { get; set; }
+    public int MinWorked { get; set; }
+    public TimeSpan ShiftStart { get; set; }
+    public TimeSpan ShiftEnd { get; set; }
+    public int ElapsedMin { get; set; }
+    public int ShiftMin { get; set; }
 
-public record KpiMetrics(decimal RevenueToday, int ActiveUsers, int OrdersToday);
+    public List<ProductInfo> Products { get; set; } = new();
+    public List<WorkerInfo> Workers { get; set; } = new();
+}
+public class GlobalDataBarChart
+{
+    public decimal TotalSAM { get; set; }
+    public int NumWorkers { get; set; }
+}
+public class ProductInfo
+{
+    public string Mono { get; set; } = "";
+    public string Prodid { get; set; } ="";
+    public string DesignCode { get; set; } = "";
 
-public record HourlyRevenue(int Hour, decimal Revenue);
+}
+public class WorkerInfo
+{
+    public string EmpId { get; set; } = "";
+    public string OpCode { get; set; } = "";
+}
 
-public record TopProduct(string ProductName, int Units, decimal Revenue);
+public class ProductionRunning
+{
+    public int TotalProduction { get; set; }
+    public int Target { get; set; }
+    public int RunningTarget { get; set; }
+    public decimal Efficiency { get; set; }
+    public int Defect { get; set; }
+
+    public int Shift { get; set; }
+
+    public TimeSpan ShiftStart { get; set; }
+    public TimeSpan ShiftEnd { get; set; }
+
+    public int ElapsedMin { get; set; }
+    public int ShiftMin { get; set; }
+}
+

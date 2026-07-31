@@ -4,28 +4,43 @@ export default function GlassCard({children, title}) {
 
         <div
             className="
-            bg-white/10
-            backdrop-blur-5xl
-            border
-            border-cyan-400/40
-            rounded-3xl
-            p-5
-            shadow-[0_0_30px_rgba(0,255,255,0.15)]
+                flex
+                flex-col
+                min-h-0
+                overflow-hidden
+                bg-white/10
+                backdrop-blur-5xl
+                border
+                border-cyan-400/40
+                rounded-3xl
+                p-2
+                shadow-[0_0_30px_rgba(0,255,255,0.15)]
             "
         >
 
             {title && (
-                <h2 className="
-                    text-black-400
-                    text-3xl
-                    text-center
-                    mb-4
-                ">
+                <h2
+                    className="
+                        text-cyan-100
+                        text-2xl
+                        text-center
+                        mb-2
+                        flex-shrink-0
+                        tracking-widest
+                    "
+                >
                     {title}
                 </h2>
             )}
 
-            {children}
+            <div
+                className="
+                    flex-1
+                    min-h-0
+                "
+            >
+                {children}
+            </div>
 
         </div>
 

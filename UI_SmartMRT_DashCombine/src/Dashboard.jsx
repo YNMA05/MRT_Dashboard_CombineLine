@@ -9,6 +9,8 @@ import backImage from "./assets/ingmar-pcqlvmqdFmk-unsplash.jpg";
 import MRTPic from "./components/SmartMRTpic";
 import { useEffect, useState } from "react";
 import * as signalR from "@microsoft/signalr";
+import LineOnline from "./components/LineOnline";
+import { useMemo } from "react";
 
 export default function Dashboard() {
     const [dashboardData, setDashboardData] = useState([]);
@@ -37,72 +39,93 @@ const connection = new signalR.HubConnectionBuilder()
         };
 
     }, []);
+    
     useEffect(() => {
     console.log("Dashboard changed:", dashboardData);
-
+    const linestatus = dashboardData.filter(line =>
+        line.moduleCode === "V_LINESTATUS"
+    );
     const outputLines = dashboardData.filter(line =>
         line.moduleCode === "V_PRODOUTPUT"
     );
-
-    console.log("Output lines:", outputLines);
-
-}, [dashboardData]);
-    const productionKpi = dashboardData.find(
-        x => x.moduleCode === "V_PRODOUTPUT"
+        const outputLines1 = dashboardData.filter(line =>
+        line.moduleCode === "V_PRODCHART"
     );
     
-    const data = [
-    {
-        name: "LINE 10",
-        output: 120,
-        target: 100,
-        defect: 150
-    },
-    {
-        name: "LINE 11",
-        output: 150,
-        target: 160,
-        defect: 250
-    },
-    {
-        name: "LINE 12",
-        output: 130,
-        target: 150,
-        defect: 50
-    },
-        {
-        name: "LINE 13",
-        output: 120,
-        target: 140,
-        defect: 90
-    },
-    {
-        name: "LINE 14",
-        output: 550,
-        target: 150,
-        defect: 70
-    },
-    {
-        name: "LINE 15",
-        output: 130,
-        target: 500,
-        defect: 90
-    },    {
-        name: "LINE 16",
-        output: 550,
-        target: 150,
-        defect: 70
-    },
-    {
-        name: "LINE 17",
-        output: 130,
-        target: 200,
-        defect: 190
-    }
+    console.log("Output lines:", outputLines);
+    console.log("Output lines1:", outputLines1);
+
+}, [dashboardData]); 
+    const lineOnline = dashboardData.find(
+        x => x.moduleCode === "V_LINESTATUS"
+    );
+    const sortedLineStatus = useMemo(() => {
+
+    const lines = lineOnline?.data ?? [];
+
+    return [...lines].sort((a, b) => {
+
+        // offline first
+        if (a.isOnline === b.isOnline) {
+            return a.lineNum - b.lineNum;
+        }
+
+        return a.isOnline ? 1 : -1;
+
+    });
+
+}, [lineOnline]);
+   const productionKpi = dashboardData.find(
+    x => x.moduleCode === "V_PRODOUTPUT"
+    );
+    const productionChart = dashboardData.find(
+        x => x.moduleCode === "V_PRODCHART"
+    );
+
+    
+
+    /*const chartData = (productionChart?.data ?? []).map(x => ({
+        name: `LINE ${x.lineNum}`,
+        output: x.output,
+        target: x.target,
+        runningTarget: x.runningTarget
+    }));*/
+    const dummyChartData = [
+    { lineNum: 1, output: 420, target: 520, runningTarget: 380 },
+    { lineNum: 2, output: 315, target: 480, runningTarget: 290 },
+    { lineNum: 3, output: 510, target: 600, runningTarget: 430 },
+    { lineNum: 4, output: 280, target: 200, runningTarget: 250 },
+    { lineNum: 5, output: 640, target: 700, runningTarget: 610 },
+    { lineNum: 6, output: 390, target: 520, runningTarget: 340 },
+    { lineNum: 7, output: 455, target: 580, runningTarget: 410 },
+    { lineNum: 8, output: 230, target: 400, runningTarget: 180 },
+    { lineNum: 9, output: 570, target: 680, runningTarget: 530 },
+    { lineNum: 10, output: 490, target: 5, runningTarget: 460 },
+    { lineNum: 11, output: 55, target: 620, runningTarget: 6 },
+    { lineNum: 12, output: 570, target: 100, runningTarget: 530 },
+    { lineNum: 13, output: 490, target: 7, runningTarget: 460 },
+    { lineNum: 14, output: 55, target: 620, runningTarget: 6 },
 ];
+const useDummy = true;
+
+const chartData = useDummy
+    ? dummyChartData
+    : (productionChart?.data ?? []).map(x => ({
+          name: `Line ${x.lineNum}`,
+          runningTarget: x.runningTarget,
+          output: x.output,
+          target: x.target,
+      }));
+    
     return (
         /* Using fixed and z-0 on the wrapper ensures the background stays strictly under everything */
-        <div className="relative min-h-screen bg-[#08152f] text-white overflow-hidden ">
+        <div className="
+    relative
+    h-screen
+    bg-[#08152f]
+    text-white
+    overflow-hidden
+">
 
             <img
                 src={backImage}
@@ -110,7 +133,7 @@ const connection = new signalR.HubConnectionBuilder()
                 className="absolute inset-0 w-full h-full object-cover opacity-70"
             />
             <div
-            className="absoluteinset-0 bg-[radial-gradient(circle_at_center,_rgba(0,255,255,0.15),transparent_40%)]
+            className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,255,255,0.15),transparent_40%)]
             "
             />
 
@@ -178,92 +201,153 @@ const connection = new signalR.HubConnectionBuilder()
 
             {/* 3. DASHBOARD CONTENT LAYER */}
             {/* 'relative z-10' guarantees this sits perfectly on top of all animations */}
-<div
+<div className="
+    relative
+    z-10
+    p-3
+    flex
+    flex-col
+    h-full
+    gap-2
+">
+
+{/* TOP SECTION */}
+<Header />
+
+<div className="relative my-2">
+
+    <div
+        className="
+            h-[2px]
+            bg-gradient-to-r
+            from-transparent
+            via-cyan-400
+            to-transparent
+            shadow-[0_0_15px_#00ffff]
+        "
+    />
+
+    <div
+        className="
+            absolute
+            top-1/2
+            left-0
+            w-20
+            h-[2px]
+            bg-cyan-300
+            shadow-[0_0_25px_#00ffff]
+            animate-[scan_4s_linear_infinite]
+        "
+    />
+
+</div>
+
+
+{/* MAIN DASHBOARD AREA */}
+<div className="
+    flex-1
+    min-h-0
+    overflow-y-auto
+">
+
+    <div
     className="
-        relative
-        z-10
-        p-3
-        flex
-        flex-col
+        grid
+        grid-cols-1
+        xl:grid-cols-5
         gap-2
-        overflow-y-auto
+        h-full
+        min-h-0
     "
 >
 
-    <Header />
-
-
-    {/* MAIN AREA */}
-    <div 
-        className="
-            flex-1
-            min-h-0
-            grid
-            grid-cols-1
-            xl:grid-cols-5
-            gap-2
-        "
-    >
-
 
         {/* LEFT SIDE */}
-        <div 
-            className="
-                flex
-                flex-col
-                min-h-0
-            "
-        >
+            <div
+                className="
+                    flex
+                    flex-col
+                    min-h-0
+                    h-full
+                "
+            >
+
+{/* TOP 3 */}
+<div className="flex-[2] min-h-0">
+
+    <GlassCard title="TOP 3 LINE">
+        <Top3Line />
+    </GlassCard>
+
+</div>
 
 
-            {/* TOP */}
-            <GlassCard title="Top 3 Line">
+{/* KPI AREA */}
+<div
+    className="
+        flex-1
+        flex
+        items-center
+        justify-center
+        py-6
+    "
+>
 
-                <Top3Line />
+    <div className="w-full h-[270px]">
 
-            </GlassCard>
-            <div className="mt-auto">
-                <MRTPic/>
-            </div>
-            {/* PUSH KPI TO BOTTOM */}
-            <div className="mt-4 xl:mt-auto">
+        <KPISection
+            totalOutput={
+                productionKpi?.data?.totalOutput ?? 0
+            }
+        />
 
-<KPISection
-    totalOutput={
-        productionKpi?.data?.totalOutput ?? 0
-    }
-/>
-            </div>
+    </div>
+
+</div>
 
 
-        </div>
-
+{/* LINE ONLINE */}
+<div
+    className="
+        flex-shrink-0
+        max-h-[220px]
+        overflow-y-auto
+    "
+>
+    <LineOnline data={sortedLineStatus}/>
+</div>
+</div>
         {/* RIGHT SIDE */}
         <div
-            className="
-                xl:col-span-4
-                flex
-                flex-col
-                min-h-0
-                gap-2
-            "
-        >
+                className="
+                    xl:col-span-4
+                    flex
+                    flex-col
+                    min-h-0
+                    h-full
+                    gap-2
+                "
+            >
+
 
 
             {/* TOP CHART */}
-            <GlassCard title="Production by Line">
+            <div className="flex-1 min-h-0">
+            <GlassCard title="PRODUCTION BY LINE">
 
-                <ProductionChart data={data}/>
+              {/* <ProductionChart data={productionChart?.data ?? []}/>*/}
+                <ProductionChart data={chartData} />
 
             </GlassCard>
+            </div>
 
             {/* PUSH LINE STATUS DOWN */}
-            <div className="mt-4 xl:mt-auto">
-
-
+            <div className="mt-auto">
                 <GlassCard>
 
+                <div className="flex-1 min-h-0">
                     <LineStatus />
+                </div>
 
                 </GlassCard>
 
@@ -273,16 +357,21 @@ const connection = new signalR.HubConnectionBuilder()
 
         </div>
 
+    </div>
+    </div>
+     {/* FOOTER */}
+    <div    className="
+        h-8
+        flex-shrink-0
+        bg-gray-500/70
+    ">
+        <Footer />
+    </div>
 
     </div>
 
-      
+
 
 </div>
-
-      <Footer />  
-      
-
-        </div>
     );
 }

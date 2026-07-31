@@ -9,12 +9,12 @@ export default function MRTPic() {
         <div className="
             items-center
             backdrop-blur-lg
-            drop-shadow-[0_0_15px_#7ac7e1]
+            drop-shadow-[0_0_20px_#7fffd4]
         ">
             <img
                 src={smartmrt}
                 alt="Smart MRT"
-                className="h-20 w-auto drop-shadow-[0_0_10px_rgba(255,255,255,0.9)]"
+                className="h-25 w-auto drop-shadow-[0_0_10px_rgba(255,255,255,0.9)]"
             />
 </div>
 <div>

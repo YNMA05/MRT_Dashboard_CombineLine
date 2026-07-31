@@ -20,14 +20,13 @@ export default function LineStatus() {
             <tr>
                 <th
                     colSpan="2"
-                    className="p-2 text-green-500 text-center"
+                    className="p-2 text-green-500 text-center font-bold tracking-widest drop-shadow-[0_0_10px_rgba(34,197,94,0.8)]"
                 >
                     LINE WIP
                 </th>
             </tr>
 
             <tr className="border-b border-green-500/30">
-
                 <th className="p-2 text-green-500">
                     Line
                 </th>
@@ -40,7 +39,7 @@ export default function LineStatus() {
             </thead>
                 <tbody>
 
-                    <tr className="border-b border-white/10 hover:bg-white/5">
+                    <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L17
                         </td>
@@ -51,7 +50,7 @@ export default function LineStatus() {
                     </tr>
 
 
-                    <tr className="border-b border-white/10 hover:bg-white/5">
+                    <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L16
                         </td>
@@ -62,7 +61,7 @@ export default function LineStatus() {
                     </tr>
 
 
-                    <tr className="border-b border-white/10 hover:bg-white/5">
+                    <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L15
                         </td>
@@ -72,7 +71,7 @@ export default function LineStatus() {
                         </td>
                     </tr>
 
-                    <tr className="border-b border-white/10 hover:bg-white/5">
+                    <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L14
                         </td>
@@ -82,7 +81,7 @@ export default function LineStatus() {
                         </td>
                     </tr>
 
-                    <tr className="border-b border-white/10 hover:bg-white/5">
+                    <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L13
                         </td>
@@ -92,7 +91,7 @@ export default function LineStatus() {
                         </td>
                     </tr>
 
-                     <tr className="border-b border-white/10 hover:bg-white/5">
+                     <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L12
                         </td>
@@ -111,7 +110,7 @@ export default function LineStatus() {
 
                 <thead className="sticky top-0 bg-slate-900 z-10">
                     <tr>
-                        <th colSpan="2" className="p-2 text-yellow-500 text-center">LINE DEFECT</th>
+                        <th colSpan="2" className="p-2 text-yellow-500 text-center font-bold tracking-widest drop-shadow-[0_0_10px_rgba(34,197,94,0.8)]">LINE DEFECT</th>
                     </tr>
                     <tr className="border-b border-yellow-500/30">
                         <th className="p-2 text-yellow-300">
@@ -125,7 +124,7 @@ export default function LineStatus() {
                 </thead>
                 <tbody>
 
-                    <tr className="border-b border-white/10 hover:bg-white/5">
+                    <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L17
                         </td>
@@ -136,7 +135,7 @@ export default function LineStatus() {
                     </tr>
 
 
-                    <tr className="border-b border-white/10 hover:bg-white/5">
+                    <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L16
                         </td>
@@ -147,7 +146,7 @@ export default function LineStatus() {
                     </tr>
 
 
-                    <tr className="border-b border-white/10 hover:bg-white/5">
+                    <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L15
                         </td>
@@ -157,7 +156,7 @@ export default function LineStatus() {
                         </td>
                     </tr>
 
-                    <tr className="border-b border-white/10 hover:bg-white/5">
+                    <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L14
                         </td>
@@ -167,7 +166,7 @@ export default function LineStatus() {
                         </td>
                     </tr>
 
-                    <tr className="border-b border-white/10 hover:bg-white/5">
+                    <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L13
                         </td>
@@ -177,7 +176,7 @@ export default function LineStatus() {
                         </td>
                     </tr>
 
-                     <tr className="border-b border-white/10 hover:bg-white/5">
+                     <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L12
                         </td>
@@ -195,7 +194,7 @@ export default function LineStatus() {
 
                 <thead className="sticky top-0 bg-slate-900 z-10">
                     <tr>
-                        <th colSpan="2" className="p-2 text-red-500 text-center">LINE EFFICIENCY</th>
+                        <th colSpan="2" className="p-2 text-red-500 text-center font-bold tracking-widest drop-shadow-[0_0_10px_rgba(34,197,94,0.8)]">LINE EFFICIENCY</th>
                     </tr>
                     <tr className="border-b text-red-500/30">
                         <th className="p-2 text-red-500">
@@ -209,7 +208,7 @@ export default function LineStatus() {
                 </thead>
                 <tbody>
 
-                    <tr className="border-b border-white/10 hover:bg-white/5">
+                    <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L17
                         </td>
@@ -220,7 +219,7 @@ export default function LineStatus() {
                     </tr>
 
 
-                    <tr className="border-b border-white/10 hover:bg-white/5">
+                    <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L16
                         </td>
@@ -231,7 +230,7 @@ export default function LineStatus() {
                     </tr>
 
 
-                    <tr className="border-b border-white/10 hover:bg-white/5">
+                    <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L15
                         </td>
@@ -241,7 +240,7 @@ export default function LineStatus() {
                         </td>
                     </tr>
 
-                    <tr className="border-b border-white/10 hover:bg-white/5">
+                    <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L14
                         </td>
@@ -251,7 +250,7 @@ export default function LineStatus() {
                         </td>
                     </tr>
 
-                    <tr className="border-b border-white/10 hover:bg-white/5">
+                    <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L13
                         </td>
@@ -261,7 +260,7 @@ export default function LineStatus() {
                         </td>
                     </tr>
 
-                     <tr className="border-b border-white/10 hover:bg-white/5">
+                     <tr className="border-b border-white/10 hover:bg-cyan-400/10 transition-all duration-300">
                         <td className="p-2">
                             L12
                         </td>
