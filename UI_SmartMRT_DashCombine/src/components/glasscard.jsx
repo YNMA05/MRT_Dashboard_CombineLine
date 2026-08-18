@@ -8,12 +8,14 @@ export default function GlassCard({children, title}) {
                 flex-col
                 min-h-0
                 overflow-hidden
-                bg-white/10
+                bg-[#E6F7FF]/80
+                dark:bg-transparent
                 backdrop-blur-5xl
                 border
                 border-cyan-400/40
+                dark:border-cyan-500/20
                 rounded-3xl
-                p-2
+                p-1
                 shadow-[0_0_30px_rgba(0,255,255,0.15)]
             "
         >
@@ -21,8 +23,13 @@ export default function GlassCard({children, title}) {
             {title && (
                 <h2
                     className="
-                        text-cyan-100
-                        text-2xl
+                        font-bold
+                        text-cyan-950
+                        dark:text-cyan-100
+                        text-sm
+                        sm:text-lg
+                        lg:text-xl
+                        xl:text-2xl
                         text-center
                         mb-2
                         flex-shrink-0

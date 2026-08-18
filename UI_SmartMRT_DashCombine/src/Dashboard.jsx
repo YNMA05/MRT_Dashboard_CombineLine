@@ -12,7 +12,7 @@ import * as signalR from "@microsoft/signalr";
 import LineOnline from "./components/LineOnline";
 import { useMemo } from "react";
 
-export default function Dashboard() {
+export default function Dashboard({theme, setTheme}) {
     const [dashboardData, setDashboardData] = useState([]);
     useEffect(() => {
 
@@ -54,6 +54,7 @@ const connection = new signalR.HubConnectionBuilder()
     
     console.log("Output lines:", outputLines);
     console.log("Output lines1:", outputLines1);
+    console.log("Chart data:", chartData);
 
 }, [dashboardData]); 
     const lineOnline = dashboardData.find(
@@ -81,6 +82,13 @@ const connection = new signalR.HubConnectionBuilder()
     const productionChart = dashboardData.find(
         x => x.moduleCode === "V_PRODCHART"
     );
+    const productionTable = dashboardData.find(
+        x => x.moduleCode === "V_PRODTABLE"
+    );
+    const productionTop3 = dashboardData.find(
+        x => x.moduleCode === "V_TOP3"
+    );
+
 
     
 
@@ -106,12 +114,12 @@ const connection = new signalR.HubConnectionBuilder()
     { lineNum: 13, output: 490, target: 7, runningTarget: 460 },
     { lineNum: 14, output: 55, target: 620, runningTarget: 6 },
 ];
-const useDummy = true;
+const useDummy = false;
 
 const chartData = useDummy
     ? dummyChartData
     : (productionChart?.data ?? []).map(x => ({
-          name: `Line ${x.lineNum}`,
+          name: x.lineNum,
           runningTarget: x.runningTarget,
           output: x.output,
           target: x.target,
@@ -119,18 +127,38 @@ const chartData = useDummy
     
     return (
         /* Using fixed and z-0 on the wrapper ensures the background stays strictly under everything */
-        <div className="
-    relative
-    h-screen
-    bg-[#08152f]
-    text-white
-    overflow-hidden
-">
+<div
+className="
+relative
+h-screen
+
+bg-[#E6F7FF]
+text-slate-900
+
+dark:bg-[#08152f]
+dark:text-white
+
+overflow-hidden
+transition-colors
+duration-300
+"
+>
 
             <img
-                src={backImage}
-                alt="Background"
-                className="absolute inset-0 w-full h-full object-cover opacity-70"
+            src={backImage}
+            className="
+            absolute
+            inset-0
+            w-full
+            h-full
+            object-cover
+
+            opacity-20
+            dark:opacity-70
+
+            transition-opacity
+            duration-500
+            "
             />
             <div
             className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,255,255,0.15),transparent_40%)]
@@ -138,12 +166,12 @@ const chartData = useDummy
             />
 
             {/* 2. GLOWING MAZE / GRID ANIMATION LAYER */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden mix-blend-screen opacity-60">
+            <div className="absolute inset-0 opacity-15 dark:opacity-60 transition-opacity duration-500">
                 <svg className="w-full h-full" xmlns="http://w3.org">
                     <defs>
                         {/* Define the pattern for the maze grid lines */}
                         <pattern id="maze-grid" width="60" height="60" patternUnits="userSpaceOnUse">
-                            <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(59, 130, 246, 0.15)" strokeWidth="1" />
+                            <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(63, 105, 168, 0.15)" strokeWidth="1" />
                         </pattern>
                         
                         {/* Custom inline keyframes for the moving laser effects */}
@@ -179,16 +207,32 @@ const chartData = useDummy
                     <rect width="100%" height="100%" fill="url(#maze-grid)" />
 
                     {/* Animated Maze Laser Paths (Horizontal & Vertical intersections) */}
-                    <g stroke="url(#laser-gradient)" strokeWidth="2" strokeLinecap="round">
-                        {/* Row 1 Paths */}
-                        <path d="M 0,120 L 400,120 L 400,300 L 900,300 L 900,180 L 1920,180" fill="none" stroke="#60a5fa" className="laser-line-1" />
-                        
-                        {/* Row 2 Paths */}
-                        <path d="M 200,0 L 200,500 L 600,500 L 600,900 L 1200,900 L 1200,1080" fill="none" stroke="#3b82f6" className="laser-line-2" />
-                        
-                        {/* Row 3 Paths (Moving in Reverse) */}
-                        <path d="M 1920,600 L 1400,600 L 1400,400 L 800,400 L 800,750 L 0,750" fill="none" stroke="#a855f7" className="laser-line-3" />
-                    </g>
+                   <g
+                    stroke="url(#laser-gradient)"
+                    strokeWidth={theme === "dark" ? 2 : 1.2}
+                    strokeLinecap="round"
+                >
+                    <path
+                        d="M 0,120 L 400,120 L 400,300 L 900,300 L 900,180 L 1920,180"
+                        fill="none"
+                        stroke="#60a5fa"
+                        className={theme === "dark" ? "laser-line-1" : ""}
+                    />
+
+                    <path
+                        d="M 200,0 L 200,500 L 600,500 L 600,900 L 1200,900 L 1200,1080"
+                        fill="none"
+                        stroke="#3b82f6"
+                        className={theme === "dark" ? "laser-line-2" : ""}
+                    />
+
+                    <path
+                        d="M 1920,600 L 1400,600 L 1400,400 L 800,400 L 800,750 L 0,750"
+                        fill="none"
+                        stroke="#a855f7"
+                        className={theme === "dark" ? "laser-line-3" : ""}
+                    />
+                </g>
                     
                     {/* Glowing Accent Gradients */}
                     <linearGradient id="laser-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -212,7 +256,10 @@ const chartData = useDummy
 ">
 
 {/* TOP SECTION */}
-<Header />
+<Header
+    theme={theme}
+    setTheme={setTheme}
+/>
 
 <div className="relative my-2">
 
@@ -248,6 +295,8 @@ const chartData = useDummy
     flex-1
     min-h-0
     overflow-y-auto
+    scrollbar-thin
+    scrollbar-thumb-cyan-500/80
 ">
 
     <div
@@ -263,20 +312,20 @@ const chartData = useDummy
 
 
         {/* LEFT SIDE */}
-            <div
-                className="
-                    flex
-                    flex-col
-                    min-h-0
-                    h-full
-                "
-            >
+        <div
+        className="
+            grid
+            grid-rows-[auto_auto_1fr]
+            gap-1
+            h-full
+        "
+        >
 
 {/* TOP 3 */}
-<div className="flex-[2] min-h-0">
+<div className="flex-1 min-h-0">
 
     <GlassCard title="TOP 3 LINE">
-        <Top3Line />
+        <Top3Line theme={theme} data = {productionTop3?.data ?? []}/>
     </GlassCard>
 
 </div>
@@ -289,7 +338,7 @@ const chartData = useDummy
         flex
         items-center
         justify-center
-        py-6
+        py-4
     "
 >
 
@@ -298,7 +347,7 @@ const chartData = useDummy
         <KPISection
             totalOutput={
                 productionKpi?.data?.totalOutput ?? 0
-            }
+            } theme={theme}
         />
 
     </div>
@@ -310,8 +359,10 @@ const chartData = useDummy
 <div
     className="
         flex-shrink-0
-        max-h-[220px]
+        max-h-[210px]
         overflow-y-auto
+        scrollbar-thin
+scrollbar-thumb-cyan-500/30
     "
 >
     <LineOnline data={sortedLineStatus}/>
@@ -320,23 +371,30 @@ const chartData = useDummy
         {/* RIGHT SIDE */}
         <div
                 className="
+                
                     xl:col-span-4
                     flex
                     flex-col
                     min-h-0
                     h-full
                     gap-2
+                    
                 "
             >
-
-
-
+                
             {/* TOP CHART */}
-            <div className="flex-1 min-h-0">
+            <div
+    className="
+
+        items-center
+        justify-center
+        py-0
+    "
+>
             <GlassCard title="PRODUCTION BY LINE">
 
               {/* <ProductionChart data={productionChart?.data ?? []}/>*/}
-                <ProductionChart data={chartData} />
+                <ProductionChart data={chartData} theme={theme}/>
 
             </GlassCard>
             </div>
@@ -346,7 +404,7 @@ const chartData = useDummy
                 <GlassCard>
 
                 <div className="flex-1 min-h-0">
-                    <LineStatus />
+                    <LineStatus data={productionTable?.data ?? []} />
                 </div>
 
                 </GlassCard>

@@ -253,31 +253,69 @@ public class MRTPollingService : BackgroundService
                     Data = lineStatus,
                     UpdateTime = DateTime.Now
                 });
-                // ============================
-                // V_PRODOUTPUT KPI
-                // ============================
+
+
+                var lineData = new Dictionary<int, (LocalData Local, GlobalData Global)>();
+
+                foreach (var line in lines)
+                {
+                    _logger.LogInformation(
+                        "Processing Line {Line}, LineId={LineId}, IsOnline={IsOnline}",
+                        line.LineNum,
+                        line.LineId,
+                        line.IsOnline);
+
+                    if (!line.IsOnline)
+                    {
+                        _logger.LogWarning(
+                            "Line {Line} is offline.",
+                            line.LineNum);
+
+                        continue;
+                    }
+
+                    try
+                    {
+                        var data = await _repository.GetLineDataAsync(line);
+
+                        lineData[line.LineId] = data;
+
+                        _logger.LogInformation(
+                            "Line {Line}: Output={Output}, SAM={SAM}, Workers={Workers}, OPCODEs={Opcodes}",
+                            line.LineNum,
+                            data.Local.TotalProduction,
+                            data.Global.TotalSAM,
+                            data.Global.NumWorkers,
+                            data.Global.OpcodeShow.Count);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(
+                            ex,
+                            "FAILED Line {LineNum}, LineId={LineId}, LocalIP={LocalIP}, MasterIP={MasterIP}",
+                            line.LineNum,
+                            line.LineId,
+                            line.LocalIpAddress,
+                            line.MasterIpAddress);
+
+                        line.IsOnline = false;
+                    }
+                }
 
                 var outputLines = GetModuleLines(lines, "V_PRODOUTPUT");
 
-
                 int totalOutput = 0;
-
 
                 foreach (var line in outputLines)
                 {
                     if (!line.IsOnline)
-                    {
-                        _logger.LogWarning("Line {line} is offline.", line.LineNum);
                         continue;
-                    }
 
-                    var output =
-                        await _repository.BuildProductionOutput(line);
+                    if (!lineData.TryGetValue(line.LineId, out var data))
+                        continue;
 
-                    totalOutput += output.TotalOutput;
+                    totalOutput += data.Local.TotalProduction;
                 }
-
-
                 dashboards.Add(new DashboardData
                 {
                     ModuleCode = "V_PRODOUTPUT",
@@ -288,45 +326,209 @@ public class MRTPollingService : BackgroundService
                     UpdateTime = DateTime.Now
                 });
 
-                // ============================
-                // V_PRODCHART
-                // ============================
+                var prodTable = GetModuleLines(lines, "V_PRODTABLE");
 
-                var chartLines =GetModuleLines(lines, "V_PRODCHART");
+                var prodTableData = new List<object>();
 
-
-                var chartData = new List<ProductionChartData>();
-
-                foreach (var line in chartLines)
+                foreach (var line in prodTable)
                 {
-                    if (!line.IsOnline)
+                    if (!lineData.TryGetValue(line.LineId, out var data))
                     {
-                        chartData.Add(new ProductionChartData
+                        prodTableData.Add(new
                         {
                             LineNum = line.LineNum,
+                            TotalHangerIn = 0,
+                            Defect = 0,
+                            Efficiency = 0,
                             IsOnline = false
                         });
 
                         continue;
                     }
 
-                    var chart =
-                        await _repository.BuildProductionChart(line);
+                    var production = _repository.CalculateAllProduction(
+                        line,
+                        data.Local,
+                        data.Global);
 
-                    chart.IsOnline = true;
-
-                    chartData.Add(chart);
+                    prodTableData.Add(new
+                    {
+                        LineNum = line.LineNum,
+                        TotalHangerIn = production.TotalHangerIn,
+                        Defect = production.Defect,
+                        Efficiency = production.Efficiency,
+                        IsOnline = production.IsOnline
+                    });
                 }
-
 
                 dashboards.Add(new DashboardData
                 {
-                    ModuleCode = "V_PRODCHART",
-                    Data = chartData,
+                    ModuleCode = "V_PRODTABLE",
+                    Data = prodTableData,
                     UpdateTime = DateTime.Now
                 });
 
+                var prodChart = GetModuleLines(lines, "V_PRODCHART");
 
+                var prodChartData = new List<object>();
+                foreach (var line in prodChart)
+                {
+                    if (!lineData.TryGetValue(line.LineId, out var data))
+                    {
+                        prodChartData.Add(new
+                        {
+                            LineNum = line.LineNum,
+                            Target = 0,
+                            RunningTarget = 0,
+                            Output = 0,
+                            IsOnline = false
+                        });
+                        continue;
+                    }
+                    var production = _repository.CalculateAllProduction(
+                        line,
+                        data.Local,
+                        data.Global);
+
+                    prodChartData.Add(new
+                    {
+                        LineNum = line.LineNum,
+                        Target = production.Target,
+                        RunningTarget = production.RunningTarget,
+                        Output = production.Output,
+                        IsOnline = production.IsOnline
+
+                    });
+                }
+                dashboards.Add(new DashboardData
+                {
+                    ModuleCode = "V_PRODCHART",
+                    Data = prodChartData,
+                    UpdateTime = DateTime.Now
+                });
+
+                var prodTop3 = GetModuleLines(lines, "V_TOP3");
+
+                var prodTop3Data = new List<Top3LineData>();
+
+                foreach (var line in prodTop3)
+                {
+                    if (!lineData.TryGetValue(line.LineId, out var data))
+                    {
+                        prodTop3Data.Add(new Top3LineData
+                        {
+                            LineNum = line.LineNum,
+                            LineEff = 0,
+                            IsOnline = false
+                        });
+
+                        continue;
+                    }
+
+                    var production = _repository.CalculateAllProduction(
+                        line,
+                        data.Local,
+                        data.Global);
+
+                    prodTop3Data.Add(new Top3LineData
+                    {
+                        LineNum = line.LineNum,
+                        LineEff = production.Efficiency,
+                        IsOnline = production.IsOnline
+                    });
+                }
+
+                prodTop3Data = prodTop3Data
+                    .Where(x => x.IsOnline)
+                    .OrderByDescending(x => x.LineEff)
+                    .Take(3)
+                    .ToList();
+
+                dashboards.Add(new DashboardData
+                {
+                    ModuleCode = "V_TOP3",
+                    Data = prodTop3Data,
+                    UpdateTime = DateTime.Now
+                });
+
+                // var lineMetrics = new List
+                // ============================
+                // V_PRODOUTPUT KPI
+                // ============================
+
+                //var outputLines = GetModuleLines(lines, "V_PRODOUTPUT");
+
+
+                //int totalOutput = 0;
+
+
+                //foreach (var line in outputLines)
+                //{
+                //    if (!line.IsOnline)
+                //    {
+                //        _logger.LogWarning("Line {line} is offline.", line.LineNum);
+                //        continue;
+                //    }
+
+                //    var output =
+                //        await _repository.BuildProductionOutput(line);
+
+                //    totalOutput += output.TotalOutput;
+                //}
+
+
+                //dashboards.Add(new DashboardData
+                //{
+                //    ModuleCode = "V_PRODOUTPUT",
+                //    Data = new
+                //    {
+                //        TotalOutput = totalOutput
+                //    },
+                //    UpdateTime = DateTime.Now
+                //});
+
+                // ============================
+                // V_PRODCHART
+                // ============================
+
+                //var chartLines =GetModuleLines(lines, "V_PRODCHART");
+
+
+                //var chartData = new List<ProductionChartData>();
+
+                //foreach (var line in chartLines)
+                //{
+                //    if (!line.IsOnline)
+                //    {
+                //        chartData.Add(new ProductionChartData
+                //        {
+                //            LineNum = line.LineNum,
+                //            IsOnline = false
+                //        });
+
+                //        continue;
+                //    }
+
+                //    var chart =
+                //        await _repository.BuildProductionChart(line);
+
+                //    chart.IsOnline = true;
+
+                //    chartData.Add(chart);
+                //}
+
+
+                //dashboards.Add(new DashboardData
+                //{
+                //    ModuleCode = "V_PRODCHART",
+                //    Data = chartData,
+                //    UpdateTime = DateTime.Now
+                //});
+
+
+                // ============================
+                // V_PRODTABLE
+                // ============================
 
                 await _hub.Clients.All.SendAsync(
                     "DashboardUpdate",

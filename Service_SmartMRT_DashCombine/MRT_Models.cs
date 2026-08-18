@@ -128,6 +128,29 @@ public class WorkerInfo
 {
     public string EmpId { get; set; } = "";
     public string OpCode { get; set; } = "";
+    public string DesignCode { get; set; } = "";
+    public string Prodid { get; set; } = "";
+    public int PieceCnt { get; set; }
+    public int SeqNo { get; set; }
+    public string StnId { get; set; } = "";
+    public int HangerIn { get; set; }
+
+}
+
+public class DataInfo
+{
+    public string prodid { get; set; } = "";
+    public string loadCode { get; set; } = "";
+    public int loadSeq { get; set; }
+    public string unloadCode { get; set; } = "";
+    public int unloadSeq { get; set; }
+    public int loadQty { get; set; }
+    public int unloadQty { get; set; }
+}
+
+public class OpcodeInfo
+{
+    public string Opcode { get; set; } = "";
 }
 
 public class ProductionRunning
@@ -147,3 +170,51 @@ public class ProductionRunning
     public int ShiftMin { get; set; }
 }
 
+
+public class LocalData
+{
+    public int TotalProduction { get; set; }
+    public int TotalLoading { get; set; }
+    public int Defect { get; set; }
+    public int Shift { get; set; }
+    public int MinWorked { get; set; }
+    public TimeSpan ShiftStart { get; set; }
+    public TimeSpan ShiftEnd { get; set; }
+    public TimeSpan ShiftOTEnd { get; set; }
+    public int ElapsedMin { get; set; }
+    public List<ProductInfo> Products { get; set; } = new();
+    public List<WorkerInfo> Workers { get; set; } = new();
+    public List<DataInfo> Datas { get; set; } = new();
+}
+public class GlobalData
+{
+    public decimal TotalSAM { get; set; }
+    public int NumWorkers { get; set; }
+    public List<OpcodeInfo> OpcodeShow { get; set; } = new();
+
+}
+
+public class AllProductionData
+{
+    public int LineNum { get; set; }
+
+    public int Output { get; set; }
+    public int TotalHangerIn { get; set; }
+
+    public int Target { get; set; }
+
+    public int RunningTarget { get; set; }
+    public decimal Defect { get; set; }
+
+    public int Loading { get; set; }
+
+    public decimal Efficiency { get; set; }
+    public bool IsOnline { get; set; }
+}
+
+public class Top3LineData
+{
+    public int LineNum { get; set; }
+    public decimal LineEff { get; set; }
+    public bool IsOnline { get; set; }
+}

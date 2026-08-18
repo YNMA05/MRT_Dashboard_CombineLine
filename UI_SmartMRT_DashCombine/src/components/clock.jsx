@@ -38,15 +38,18 @@ export default function Clock() {
         border border-cyan-400/40
         bg-cyan-500/5
         backdrop-blur-md
-        px-6 py-0
+        px-5 py-0
         shadow-[0_0_30px_rgba(0,255,255,0.25)]
     ">
 
         <div className="
-            text-4xl
-            font-black
+            text-lg
+            sm:text-xl
+            lg:text-2xl
+            xl:text-3xl
             tracking-[0.15em]
-            text-cyan-300
+            text-cyan-900
+            dark:text-cyan-300
             drop-shadow-[0_0_10px_#00ffff]
         ">
             {time.toLocaleTimeString()}
@@ -54,10 +57,14 @@ export default function Clock() {
 
         <div className="
             mt-1
-            text-2xl
+            text-sm
+            sm:text-lg
+            lg:text-xl
+            xl:text-2xl
             uppercase
             tracking-[0.35em]
-            text-cyan-100/80
+            text-cyan-900
+            dark:text-cyan-100/80
         ">
             {time.toLocaleDateString()}
         </div>

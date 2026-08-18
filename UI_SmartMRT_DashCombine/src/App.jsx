@@ -1,20 +1,34 @@
 // src/App.jsx
-// This is the root component. Right now it just renders the Dashboard,
-// but as the project grows this is where you'd add routing, a login
-// screen, multiple dashboard views, etc.
 
+import { useState, useEffect } from "react";
 import Dashboard from "./Dashboard";
 
 export default function App() {
 
+    const [theme, setTheme] = useState(
+        localStorage.getItem("theme") || "dark"
+    );
+
+
+    useEffect(() => {
+
+        if(theme === "dark"){
+            document.documentElement.classList.add("dark");
+        }
+        else{
+            document.documentElement.classList.remove("dark");
+        }
+
+        localStorage.setItem("theme", theme);
+
+    }, [theme]);
+
+
     return (
-
-        <div className="min-h-screen bg-slate-950">
-
-            <Dashboard/>
-
-        </div>
-
+        <Dashboard
+            theme={theme}
+            setTheme={setTheme}
+        />
     );
 
 }
