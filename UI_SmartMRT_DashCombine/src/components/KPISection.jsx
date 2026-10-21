@@ -1,5 +1,5 @@
 import GlassCard from "./GlassCard";
-export default function KPISection({ totalOutput,theme }) {
+export default function KPISection({ totalOutput,previousOutput, theme }) {
 
     return (
 
@@ -133,7 +133,7 @@ className={`
                         drop-shadow-[0_0_40px_#6366f1]
                     "
                 >
-                    18,019
+                    {(previousOutput ?? 0).toLocaleString()}
                 </div>
 
             </div>

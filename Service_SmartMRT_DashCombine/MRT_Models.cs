@@ -111,6 +111,7 @@ public class LocalDataBarChart
 
     public List<ProductInfo> Products { get; set; } = new();
     public List<WorkerInfo> Workers { get; set; } = new();
+    public List<StationAssignInfo> Assigns { get; set; } = new();
 }
 public class GlobalDataBarChart
 {
@@ -122,7 +123,6 @@ public class ProductInfo
     public string Mono { get; set; } = "";
     public string Prodid { get; set; } ="";
     public string DesignCode { get; set; } = "";
-
 }
 public class WorkerInfo
 {
@@ -132,11 +132,15 @@ public class WorkerInfo
     public string Prodid { get; set; } = "";
     public int PieceCnt { get; set; }
     public int SeqNo { get; set; }
-    public string StnId { get; set; } = "";
+    public string StationId { get; set; } = "";
     public int HangerIn { get; set; }
-
 }
-
+public class StationAssignInfo
+{
+    public string OpCode { get; set; } = "";
+    public string DesignCode { get; set; } = "";
+    public string Prodid { get; set; } = "";
+}
 public class DataInfo
 {
     public string prodid { get; set; } = "";
@@ -160,12 +164,9 @@ public class ProductionRunning
     public int RunningTarget { get; set; }
     public decimal Efficiency { get; set; }
     public int Defect { get; set; }
-
     public int Shift { get; set; }
-
     public TimeSpan ShiftStart { get; set; }
     public TimeSpan ShiftEnd { get; set; }
-
     public int ElapsedMin { get; set; }
     public int ShiftMin { get; set; }
 }
@@ -184,6 +185,7 @@ public class LocalData
     public int ElapsedMin { get; set; }
     public List<ProductInfo> Products { get; set; } = new();
     public List<WorkerInfo> Workers { get; set; } = new();
+    public List<StationAssignInfo> Assigns { get; set; } = new();
     public List<DataInfo> Datas { get; set; } = new();
 }
 public class GlobalData
@@ -191,23 +193,17 @@ public class GlobalData
     public decimal TotalSAM { get; set; }
     public int NumWorkers { get; set; }
     public List<OpcodeInfo> OpcodeShow { get; set; } = new();
-
 }
 
 public class AllProductionData
 {
     public int LineNum { get; set; }
-
     public int Output { get; set; }
     public int TotalHangerIn { get; set; }
-
     public int Target { get; set; }
-
     public int RunningTarget { get; set; }
     public decimal Defect { get; set; }
-
     public int Loading { get; set; }
-
     public decimal Efficiency { get; set; }
     public bool IsOnline { get; set; }
 }
@@ -217,4 +213,18 @@ public class Top3LineData
     public int LineNum { get; set; }
     public decimal LineEff { get; set; }
     public bool IsOnline { get; set; }
+}
+
+public class ProductionReportData
+{
+    public int LineNum { get; set; }
+    public int Output { get; set; }
+    public int Target { get; set; }
+    public int RunningTarget { get; set; }
+    public decimal Defect { get; set; }
+    public decimal Efficiency { get; set; }
+    public bool IsOnline { get; set; }
+    public List<WorkerInfo> Workers { get; set; } = new();
+    public List<ProductInfo> Products { get; set; } = new();
+    public List<StationAssignInfo> Assigns { get; set; } = new();
 }

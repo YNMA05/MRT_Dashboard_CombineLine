@@ -61,5 +61,24 @@ namespace SmartMRT_DashCombine_Setup
                 $"Password=1234;" +
                 $"TrustServerCertificate=True;";
         }
+
+        public static string GetDashboardConnection()
+        {
+            DashboardConfig config = DashboardConfigManager.Load();
+
+            if (config == null)
+            {
+                throw new System.Exception("Dashboard configuration could not be loaded!");
+            }
+
+            string password = PasswordEncryption.Decrypt(config.DashboardDatabase.Password);
+
+            return GetSqlConnectionString(
+                config.DashboardDatabase.Server,
+                config.DashboardDatabase.Instance,
+                config.DashboardDatabase.Username,
+                password,
+                config.DashboardDatabase.Database);
+        }
     }
 }

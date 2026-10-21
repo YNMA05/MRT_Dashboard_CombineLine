@@ -17,3 +17,12 @@
 # OS files
 .DS_Store
 Thumbs.db
+
+# Database backups
+*.bak
+Installer/Output/
+Service_SmartMRT_DashCombine/publish/
+
+# Build and installer outputs
+Installer/Output/
+Service_SmartMRT_DashCombine/publish.zip

@@ -24,7 +24,6 @@ const connection = new signalR.HubConnectionBuilder()
     .build();
 
         connection.on("DashboardUpdate", (data) => {
-            console.log("Received:", data);
             setDashboardData(data);
         });
 
@@ -41,7 +40,6 @@ const connection = new signalR.HubConnectionBuilder()
     }, []);
     
     useEffect(() => {
-    console.log("Dashboard changed:", dashboardData);
     const linestatus = dashboardData.filter(line =>
         line.moduleCode === "V_LINESTATUS"
     );
@@ -51,10 +49,6 @@ const connection = new signalR.HubConnectionBuilder()
         const outputLines1 = dashboardData.filter(line =>
         line.moduleCode === "V_PRODCHART"
     );
-    
-    console.log("Output lines:", outputLines);
-    console.log("Output lines1:", outputLines1);
-    console.log("Chart data:", chartData);
 
 }, [dashboardData]); 
     const lineOnline = dashboardData.find(
@@ -347,7 +341,7 @@ duration-300
         <KPISection
             totalOutput={
                 productionKpi?.data?.totalOutput ?? 0
-            } theme={theme}
+            } previousOutput = {productionKpi?.data?.previousOutput ?? 0} theme={theme}
         />
 
     </div>

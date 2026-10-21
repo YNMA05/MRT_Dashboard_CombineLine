@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc.ViewFeatures;
+﻿using DocumentFormat.OpenXml.Office.Word;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Data.SqlClient;
 using Microsoft.Identity.Client;
 using System.Data;
+using System.Diagnostics;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Diagnostics;
 
 namespace SmartMRTDashService_Combine
 {
@@ -18,6 +20,156 @@ namespace SmartMRTDashService_Combine
         ILogger<MRT_DashRepository> logger)
         {
             _logger = logger;
+        }
+
+        public async Task<Dictionary<int,int>> GetPreviousProductionsAsync(
+            List<int> lineNums,
+            string shift,
+            DateTime currentDate,
+            string server,
+            string instance)
+        {
+            var result = new Dictionary<int,int>();
+
+            if (lineNums == null || lineNums.Count == 0)
+                return result;
+
+            //string conn = MRT_ConnectionMain.GetGlobalDBConnection(
+            //    string.IsNullOrWhiteSpace(server) ? "localhost" : server,
+            //    string.IsNullOrWhiteSpace(instance) ? "SQLEXPRESS" : instance);
+
+            string conn = MRT_ConnectionMain.GetDashboardConnection();
+
+            // Build parameterized IN list to avoid SQL injection
+            var paramNames = lineNums.Select((n, i) => "@p" + i).ToList();
+            string inClause = string.Join(",", paramNames);
+
+            string sql = $@"
+            SELECT LINE_ID, PRODUCTION_COUNT
+            FROM (
+              SELECT LINE_ID, PRODUCTION_COUNT,
+                     ROW_NUMBER() OVER (PARTITION BY LINE_ID ORDER BY LAST_UPDATE DESC) rn
+              FROM DC_PRODOUTREC
+              WHERE SHIFT = @Shift
+                AND LAST_UPDATE < @Date
+                AND LINE_ID IN ({inClause})
+            ) t
+            WHERE rn = 1";
+
+            try
+            {
+                using var connection = new SqlConnection(conn);
+                await connection.OpenAsync();
+
+                using var cmd = new SqlCommand(sql, connection);
+                cmd.Parameters.AddWithValue("@Shift", shift ?? string.Empty);
+                cmd.Parameters.AddWithValue("@Date", currentDate.Date);
+
+                for (int i = 0; i < lineNums.Count; i++)
+                {
+                    cmd.Parameters.AddWithValue(paramNames[i], lineNums[i]);
+                }
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    int ln = reader[0] == DBNull.Value ? 0 : Convert.ToInt32(reader[0]);
+                    int pc = reader[1] == DBNull.Value ? 0 : Convert.ToInt32(reader[1]);
+                    result[ln] = pc;
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+               // _logger.LogError(ex, "GetPreviousProductionsAsync failed");
+                return result;
+            }
+        }
+
+        public async Task<int> GetPreviousProductionAsync(
+            int lineNum,
+            string shift,
+            DateTime currentDate,
+            string server,
+            string instance)
+        {
+            //string conn = MRT_ConnectionMain.GetGlobalDBConnection(
+            //    string.IsNullOrWhiteSpace(server) ? "localhost" : server,
+            //    string.IsNullOrWhiteSpace(instance) ? "SQLEXPRESS" : instance);
+
+            string conn = MRT_ConnectionMain.GetDashboardConnection();
+
+            const string sql = "SELECT TOP(1) PRODUCTION_COUNT FROM DC_PRODOUTREC " +
+                                 "WHERE LINE_ID = @LineNum AND Shift = @Shift AND LAST_UPDATE < @Date " +
+                                 "ORDER BY LAST_UPDATE DESC";
+
+            try
+            {
+                using var connection = new SqlConnection(conn);
+                await connection.OpenAsync();
+
+                using var cmd = new SqlCommand(sql, connection);
+                cmd.Parameters.AddWithValue("@LineNum", lineNum);
+                cmd.Parameters.AddWithValue("@Shift", shift ?? string.Empty);
+                cmd.Parameters.AddWithValue("@Date", currentDate.Date);
+
+                var result = await cmd.ExecuteScalarAsync();
+
+                if (result == null || result == DBNull.Value)
+                    return 0;
+
+                return Convert.ToInt32(result);
+            }
+            catch (Exception ex)
+            {
+               // _logger.LogError(ex, "GetPreviousProductionAsync failed for LineNum {Line}", lineNum);
+                return 0;
+            }
+        }
+
+        public async Task SaveProductionCountAsync(
+            LineConfig line,
+            DateTime productionDate,
+            string shift,
+            int productionCount,
+            string server,
+            string instance)
+        {
+            try
+            {
+                //string conn = MRT_ConnectionMain.GetGlobalDBConnection(
+                //    string.IsNullOrWhiteSpace(server) ? "localhost" : server,
+                //    string.IsNullOrWhiteSpace(instance) ? "SQLEXPRESS" : instance);
+
+                string conn = MRT_ConnectionMain.GetDashboardConnection();
+
+                using var connection = new SqlConnection(conn);
+                await connection.OpenAsync();
+
+                using var cmd = new SqlCommand("DC_UpdateDailyProduction", connection);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.AddWithValue("@ProductionDate", productionDate.Date);
+                cmd.Parameters.AddWithValue("@LineId", line.LineId);
+                cmd.Parameters.AddWithValue("@Shift", shift ?? string.Empty);
+                cmd.Parameters.AddWithValue("@ProductionCount", productionCount);
+
+                await cmd.ExecuteNonQueryAsync();
+
+                _logger.LogInformation(
+                    "Saved production {Count} for Line {Line} (LineNum={LineNum}) on {Date} shift {Shift}",
+                    productionCount,
+                    line.LineId,
+                    line.LineNum,
+                    productionDate,
+                    shift);
+            }
+            catch (Exception ex)
+            {
+               // _logger.LogError(ex, "SaveProductionCountAsync failed for Line {Line}", line.LineNum);
+                throw;
+            }
         }
         // ─────────────────────────────────────────────
         // Step 1 — Load flat records from global DB
@@ -98,11 +250,11 @@ namespace SmartMRTDashService_Combine
 
                 sw.Stop();
 
-                _logger.LogInformation(
-                    "Line {Line}: SQL connection OK in {Ms} ms. IP={IP}",
-                    line.LineNum,
-                    sw.ElapsedMilliseconds,
-                    line.LocalIpAddress);
+                //_logger.LogInformation(
+                //    "Line {Line}: SQL connection OK in {Ms} ms. IP={IP}",
+                //    line.LineNum,
+                //    sw.ElapsedMilliseconds,
+                //    line.LocalIpAddress);
 
                 return true;
             }
@@ -110,12 +262,12 @@ namespace SmartMRTDashService_Combine
             {
                 sw.Stop();
 
-                _logger.LogError(
-                    ex,
-                    "Line {Line}: SQL connection FAILED after {Ms} ms. IP={IP}",
-                    line.LineNum,
-                    sw.ElapsedMilliseconds,
-                    line.LocalIpAddress);
+                //_logger.LogError(
+                //    ex,
+                //    "Line {Line}: SQL connection FAILED after {Ms} ms. IP={IP}",
+                //    line.LineNum,
+                //    sw.ElapsedMilliseconds,
+                //    line.LocalIpAddress);
 
                 return false;
             }
@@ -128,13 +280,20 @@ namespace SmartMRTDashService_Combine
             {
                 var data = await GetLineDataAsync(line);
 
-                return CalculateAllProduction(
-                    line,
-                    data.Local,
-                    data.Global);
+                return CalculateAllProduction(line,data.Local,data.Global);
+
+
             }
             catch (Exception ex)
             {
+                //_logger.LogError(
+                //    ex,
+                //    "BuildAllProduction failed - Line {LineNum}, LineId={LineId}, LocalIP={LocalIP}, MasterIP={MasterIP}",
+                //    line.LineNum,
+                //    line.LineId,
+                //    line.LocalIpAddress,
+                //    line.MasterIpAddress);
+
                 return new AllProductionData
                 {
                     LineNum = line.LineNum,
@@ -155,7 +314,7 @@ namespace SmartMRTDashService_Combine
            // string globalConn = MRT_ConnectionMain.GetLineGlobalDBConnection(line.MasterIpAddress);
 
             LocalData localData = await DC_GetLocalDataAsync(line);
-            GlobalData globalData = await DC_GetGlobalDataAsync(line,localData.Products,localData.Workers);
+            GlobalData globalData = await DC_GetGlobalDataAsync(line,localData.Products,localData.Workers,localData.Assigns); 
 
             return(localData,globalData);
         }
@@ -207,7 +366,7 @@ namespace SmartMRTDashService_Combine
             int totalHangerIn = local.Workers
                 .Where(w => validOpcodes.Contains(w.OpCode))
                 .Where(w => !excludedOpcodes.Contains(w.OpCode))
-                .GroupBy(w => w.StnId)
+                .GroupBy(w => w.StationId)
                 .Sum(g => g.First().HangerIn);
 
             //int totalPieceCnt = local.Workers
@@ -228,30 +387,35 @@ namespace SmartMRTDashService_Combine
             };
         }
 
+        //public async Task UpdateDailyProductionAsync(LineConfig line, int productionCount, string shift)
+        //{
+        //    string conn = MRT_ConnectionMain.GetGlobalDBConnection("localhost", "SQLEXPRESS");
+        //    using var connection = new SqlConnection(conn);
+        //    await connection_OpenAsync();
 
+        //}
 
         private async Task<LocalData> DC_GetLocalDataAsync(LineConfig line)
         {
             var sw = Stopwatch.StartNew();
             try
             {
-                _logger.LogInformation(
-                    "START DC_GetLocalData Line {Line}",
-                    line.LineNum);
+                //_logger.LogInformation(
+                //    "START DC_GetLocalData Line {Line}",
+                //    line.LineNum);
 
                 string localConn = MRT_ConnectionMain.GetLineGlobalDBConnection(line.LocalIpAddress);
                 using var connection = new SqlConnection(localConn); await connection.OpenAsync();
 
-                _logger.LogInformation(
-           "Line {Line}: SQL connection opened in {Ms} ms",
-           line.LineNum,
-           sw.ElapsedMilliseconds);
+                //_logger.LogInformation(
+                //"Line {Line}: SQL connection opened in {Ms} ms", line.LineNum, sw.ElapsedMilliseconds);
 
 
                 using var cmd = new SqlCommand("DC_GetDataLocal", connection);
 
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@Date", DateTime.Today);
+                //cmd.Parameters.AddWithValue("@Date", new DateTime(2026, 8, 27));
                 cmd.Parameters.AddWithValue("@Line", line.LineNum);
                 cmd.Parameters.Add("@TotalProduction", SqlDbType.Int).Direction = ParameterDirection.Output;
                 cmd.Parameters.Add("@MinWorked", SqlDbType.Int).Direction = ParameterDirection.Output;
@@ -264,134 +428,201 @@ namespace SmartMRTDashService_Combine
                 cmd.Parameters.Add("@ElapsedMin", SqlDbType.Int).Direction = ParameterDirection.Output;
                 await cmd.ExecuteNonQueryAsync();
 
-                var shift =
-                cmd.Parameters["@Shift"].Value == DBNull.Value
-                    ? 0
-                    : Convert.ToInt32(cmd.Parameters["@Shift"].Value);
+                //var shift =
+                //cmd.Parameters["@Shift"].Value == DBNull.Value
+                //    ? 0
+                //    : Convert.ToInt32(cmd.Parameters["@Shift"].Value);
 
-                TimeSpan shiftStart =
+                //TimeSpan shiftStart =
+                //cmd.Parameters["@ShiftStartTime"].Value == DBNull.Value
+                //    ? TimeSpan.Zero
+                //    : (TimeSpan)cmd.Parameters["@ShiftStartTime"].Value;
+
+                //TimeSpan shiftEnd =
+                // cmd.Parameters["@ShiftEndTime"].Value == DBNull.Value
+                //     ? TimeSpan.Zero
+                //     : (TimeSpan)cmd.Parameters["@ShiftEndTime"].Value;
+
+                //TimeSpan shiftOTEnd =
+                //cmd.Parameters["@ShiftOTEndTime"].Value == DBNull.Value
+                //    ? TimeSpan.Zero
+                //    : (TimeSpan)cmd.Parameters["@ShiftOTEndTime"].Value;
+
+                //var elapsedMin = cmd.Parameters["@ElapsedMin"].Value == DBNull.Value
+                //    ? 0 :
+                //    Convert.ToInt32(cmd.Parameters["@ElapsedMin"].Value);
+                var productInfo = new List<ProductInfo>();
+                var workers = new List<WorkerInfo>();
+                var assigns = new List<StationAssignInfo>();
+                var datas = new List<DataInfo>();
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    //while (await reader.ReadAsync())
+                    //{
+                    //    productInfo.Add(new ProductInfo
+                    //    {
+                    //        Mono = reader["MONO"].ToString(),
+                    //        Prodid = reader["PRODID"].ToString(),
+                    //        DesignCode = reader["DESIGNCODE"].ToString()
+
+                    //    });
+                    //    workers.Add(new WorkerInfo
+                    //    {
+                    //        EmpId = reader["EMPID"].ToString(),
+                    //        OpCode = reader["OPCODE"].ToString()
+                    //    });
+                    //}
+                    // Result 1: Products
+                    while (await reader.ReadAsync())
+                    {
+                        productInfo.Add(new ProductInfo
+                        {
+                            Mono = reader["MONO"].ToString(),
+                            DesignCode = reader["DESIGNCODE"].ToString(),
+                            Prodid = reader["PRODID"].ToString()
+                        });
+                    }
+
+                    await reader.NextResultAsync();
+                    // Result 2: Workers
+                    while (await reader.ReadAsync())
+                    {
+                        workers.Add(new WorkerInfo
+                        {
+                            EmpId = reader["EMPID"].ToString(),
+                            OpCode = reader["OPCODE"].ToString(),
+                            DesignCode = reader["DESIGNCODE"].ToString(),
+                            Prodid = reader["PRODID"].ToString(),
+                            PieceCnt = reader["PIECECNT"] == DBNull.Value
+                                ? 0
+                                : Convert.ToInt32(reader["PIECECNT"]),
+                            SeqNo = reader["SEQNO"] == DBNull.Value
+                                ? 0
+                                : Convert.ToInt32(reader["SEQNO"]),
+                            StationId = reader["STATIONID"].ToString(),
+                            HangerIn = reader["HANGERIN"] == DBNull.Value
+                                ? 0
+                                : Convert.ToInt32(reader["HANGERIN"])
+                        });
+                    }
+
+                    await reader.NextResultAsync();
+                    // Result 3: StationAssign
+                    while (await reader.ReadAsync())
+                    {
+                        assigns.Add(new StationAssignInfo
+                        {
+                            OpCode = reader["OPCODE"].ToString(),
+                            DesignCode = reader["DESIGNCODE"].ToString(),
+                            Prodid = reader["PRODID"].ToString()
+                        });
+                    }
+
+                    await reader.NextResultAsync();
+
+                    // Result 4: ProcessInfo
+                    while (await reader.ReadAsync())
+                    {
+                        datas.Add(new DataInfo
+                        {
+                            prodid = reader["ProdID"]?.ToString(),
+
+                            loadCode = reader["LoadingOpcode"]?.ToString(),
+
+                            loadSeq = reader["LoadingSeq"] == DBNull.Value
+                                ? 0
+                                : Convert.ToInt32(reader["LoadingSeq"]),
+
+                            unloadCode = reader["UnloadingOpcode"]?.ToString(),
+
+                            unloadSeq = reader["UnloadingSeq"] == DBNull.Value
+                                ? 0
+                                : Convert.ToInt32(reader["UnloadingSeq"]),
+
+                            loadQty = reader["LoadingQty"] == DBNull.Value
+                                ? 0
+                                : Convert.ToInt32(reader["LoadingQty"]),
+
+                            unloadQty = reader["ProductionQty"] == DBNull.Value
+                                ? 0
+                                : Convert.ToInt32(reader["ProductionQty"])
+                        });
+                    }
+                }
+                //Result 5 : Output parameters
+                var totalProduction =
+        cmd.Parameters["@TotalProduction"].Value == DBNull.Value
+            ? 0
+            : Convert.ToInt32(cmd.Parameters["@TotalProduction"].Value);
+
+                var minWorked =
+                    cmd.Parameters["@MinWorked"].Value == DBNull.Value
+                        ? 0
+                        : Convert.ToInt32(cmd.Parameters["@MinWorked"].Value);
+
+                var defect =
+                    cmd.Parameters["@Defect"].Value == DBNull.Value
+                        ? 0
+                        : Convert.ToInt32(cmd.Parameters["@Defect"].Value);
+
+                var totalLoading =
+                    cmd.Parameters["@TotalLoading"].Value == DBNull.Value
+                        ? 0
+                        : Convert.ToInt32(cmd.Parameters["@TotalLoading"].Value);
+
+                var shift =
+                    cmd.Parameters["@Shift"].Value == DBNull.Value
+                        ? 0
+                        : Convert.ToInt32(cmd.Parameters["@Shift"].Value);
+
+                var shiftStart =
+                cmd.Parameters["@ShiftStartTime"].Value == null ||
                 cmd.Parameters["@ShiftStartTime"].Value == DBNull.Value
                     ? TimeSpan.Zero
                     : (TimeSpan)cmd.Parameters["@ShiftStartTime"].Value;
 
-                TimeSpan shiftEnd =
-                 cmd.Parameters["@ShiftEndTime"].Value == DBNull.Value
-                     ? TimeSpan.Zero
-                     : (TimeSpan)cmd.Parameters["@ShiftEndTime"].Value;
+                var shiftEnd =
+                    cmd.Parameters["@ShiftEndTime"].Value == null ||
+                    cmd.Parameters["@ShiftEndTime"].Value == DBNull.Value
+                        ? TimeSpan.Zero
+                        : (TimeSpan)cmd.Parameters["@ShiftEndTime"].Value;
 
-                TimeSpan shiftOTEnd =
-                cmd.Parameters["@ShiftOTEndTime"].Value == DBNull.Value
-                    ? TimeSpan.Zero
-                    : (TimeSpan)cmd.Parameters["@ShiftOTEndTime"].Value;
+                var shiftOTEnd =
+                    cmd.Parameters["@ShiftOTEndTime"].Value == null ||
+                    cmd.Parameters["@ShiftOTEndTime"].Value == DBNull.Value
+                        ? TimeSpan.Zero
+                        : (TimeSpan)cmd.Parameters["@ShiftOTEndTime"].Value;
 
-                var elapsedMin = cmd.Parameters["@ElapsedMin"].Value == DBNull.Value
-                    ? 0 :
-                    Convert.ToInt32(cmd.Parameters["@ElapsedMin"].Value);
-
-                using var reader = await cmd.ExecuteReaderAsync();
-
-                var productInfo = new List<ProductInfo>();
-
-                var workers = new List<WorkerInfo>();
-
-                var datas = new List<DataInfo>();
-
-                //while (await reader.ReadAsync())
-                //{
-                //    productInfo.Add(new ProductInfo
-                //    {
-                //        Mono = reader["MONO"].ToString(),
-                //        Prodid = reader["PRODID"].ToString(),
-                //        DesignCode = reader["DESIGNCODE"].ToString()
-
-                //    });
-                //    workers.Add(new WorkerInfo
-                //    {
-                //        EmpId = reader["EMPID"].ToString(),
-                //        OpCode = reader["OPCODE"].ToString()
-                //    });
-                //}
-                while (await reader.ReadAsync())
-                {
-                    productInfo.Add(new ProductInfo
-                    {
-                        Mono = reader["MONO"].ToString(),
-                        DesignCode = reader["DESIGNCODE"].ToString(),
-                        Prodid = reader["PRODID"].ToString()
-                    });
-                }
-                await reader.NextResultAsync();
-                while (await reader.ReadAsync())
-                {
-                    workers.Add(new WorkerInfo
-                    {
-                        EmpId = reader["EMPID"].ToString(),
-                        OpCode = reader["OPCODE"].ToString(),
-                        DesignCode = reader["DESIGNCODE"].ToString(),
-                        Prodid = reader["PRODID"].ToString(),
-                        PieceCnt = Convert.ToInt32(reader["PIECECNT"].ToString()),
-                        SeqNo = Convert.ToInt32(reader["SEQNO"].ToString()),
-                        StnId = reader["STATIONID"].ToString(),
-                        HangerIn = Convert.ToInt32(reader["HANGERIN"].ToString())
-
-                    });
-                }
-                await reader.NextResultAsync();
-                await reader.NextResultAsync();
-
-                while (await reader.ReadAsync())
-                {
-                    datas.Add(new DataInfo
-                    {
-                        prodid = reader["ProdID"]?.ToString(),
-
-                        loadCode = reader["LoadingOpcode"]?.ToString(),
-
-                        loadSeq = reader["LoadingSeq"] == DBNull.Value
-                            ? 0
-                            : Convert.ToInt32(reader["LoadingSeq"]),
-
-                        unloadCode = reader["UnloadingOpcode"]?.ToString(),
-
-                        unloadSeq = reader["UnloadingSeq"] == DBNull.Value
-                            ? 0
-                            : Convert.ToInt32(reader["UnloadingSeq"]),
-
-                        loadQty = reader["LoadingQty"] == DBNull.Value
-                            ? 0
-                            : Convert.ToInt32(reader["LoadingQty"]),
-
-                        unloadQty = reader["ProductionQty"] == DBNull.Value
-                            ? 0
-                            : Convert.ToInt32(reader["ProductionQty"])
-                    });
-                }
-                _logger.LogInformation(
-    "Line {Line}: TotalProduction={TotalProduction}, MinWorked={MinWorked}, Defect={Defect}, TotalLoading={TotalLoading}, Shift={Shift}, ShiftStart={ShiftStart}, ShiftEnd={ShiftEnd}, ElapsedMin={ElapsedMin}",
-    line.LineNum,
-    cmd.Parameters["@TotalProduction"].Value,
-    cmd.Parameters["@MinWorked"].Value,
-    cmd.Parameters["@Defect"].Value,
-    cmd.Parameters["@TotalLoading"].Value,
-    cmd.Parameters["@Shift"].Value,
-    cmd.Parameters["@ShiftStartTime"].Value,
-    cmd.Parameters["@ShiftEndTime"].Value,
-    cmd.Parameters["@ElapsedMin"].Value
-    );
+                var elapsedMin =
+                    cmd.Parameters["@ElapsedMin"].Value == DBNull.Value
+                        ? 0
+                        : Convert.ToInt32(cmd.Parameters["@ElapsedMin"].Value);
+                //_logger.LogInformation(
+                //    "Line {Line}: TotalProduction={TotalProduction}, MinWorked={MinWorked}, Defect={Defect}, TotalLoading={TotalLoading}, Shift={Shift}, ShiftStart={ShiftStart}, ShiftEnd={ShiftEnd}, ElapsedMin={ElapsedMin}",
+                //        line.LineNum,
+                //        totalProduction,
+                //        minWorked,
+                //        defect,
+                //        totalLoading,
+                //        shift,
+                //        shiftStart,
+                //        shiftEnd,
+                //        elapsedMin
+                //    );
 
                 // Very important!
-                reader.Close();
-                _logger.LogInformation(
-            "Line {Line}: DC_GetDataLocal completed in {Ms} ms",
-            line.LineNum,
-            sw.ElapsedMilliseconds);
+               // reader.Close();
+            //    _logger.LogInformation(
+            //"Line {Line}: DC_GetDataLocal completed in {Ms} ms",
+            //line.LineNum,
+            //sw.ElapsedMilliseconds);
 
                 sw.Stop();
 
-                _logger.LogInformation(
-                    "END DC_GetLocalData Line {Line}: {Ms} ms",
-                    line.LineNum,
-                    sw.ElapsedMilliseconds);
+                //_logger.LogInformation(
+                //    "END DC_GetLocalData Line {Line}: {Ms} ms",
+                //    line.LineNum,
+                //    sw.ElapsedMilliseconds);
 
                 return new LocalData
                 {
@@ -406,25 +637,23 @@ namespace SmartMRTDashService_Combine
                     ElapsedMin = elapsedMin,
                     Products = productInfo,
                     Workers = workers,
+                    Assigns = assigns,
                     Datas = datas
                 };
 
             }
             catch (Exception ex)
             {
-                _logger.LogError(
-                    ex,
-                    "DC_GetLocalData FAILED Line {Line}",
-                    line.LineNum);
+                //_logger.LogError(
+                //    ex,
+                //    "DC_GetLocalData FAILED Line {Line}",
+                //    line.LineNum);
 
                 throw;
             }
         }
 
-        private async Task<GlobalData> DC_GetGlobalDataAsync(
-          LineConfig line,
-          List<ProductInfo> products,
-          List<WorkerInfo> workers)
+        private async Task<GlobalData> DC_GetGlobalDataAsync(LineConfig line,List<ProductInfo> products,List<WorkerInfo> workers,List<StationAssignInfo> assigns)
         {
             string globalConn = MRT_ConnectionMain.GetLineGlobalDBConnection(line.MasterIpAddress);
 
@@ -433,10 +662,10 @@ namespace SmartMRTDashService_Combine
             
             var sw = Stopwatch.StartNew();
 
-            _logger.LogInformation(
-                "START DC_GetGlobalData Line {Line}, MasterIP={IP}",
-                line.LineNum,
-                line.MasterIpAddress);
+            //_logger.LogInformation(
+            //    "START DC_GetGlobalData Line {Line}, MasterIP={IP}",
+            //    line.LineNum,
+            //    line.MasterIpAddress);
 
             var productTable = new DataTable();
             productTable.Columns.Add("MONO", typeof(string));
@@ -454,14 +683,34 @@ namespace SmartMRTDashService_Combine
             var workerTable = new DataTable();
             workerTable.Columns.Add("EMPID", typeof(string));
             workerTable.Columns.Add("OPCODE", typeof(string));
+            workerTable.Columns.Add("DESIGNCODE", typeof(string));
+            workerTable.Columns.Add("PRODID", typeof(string));
+            workerTable.Columns.Add("PIECECNT", typeof(int));
+            workerTable.Columns.Add("SEQNO", typeof(int));
+            workerTable.Columns.Add("STATIONID", typeof(string));
+            workerTable.Columns.Add("HANGERIN", typeof(int));
 
             foreach (var item in workers)
             {
                 workerTable.Rows.Add(
                     item.EmpId,
-                    item.OpCode);
+                    item.OpCode,item.DesignCode,item.Prodid,item.PieceCnt,item.SeqNo,item.StationId,item.HangerIn);
             }
 
+            var assignTable = new DataTable();
+            assignTable.Columns.Add("OPCODE", typeof(string));
+            assignTable.Columns.Add("DESIGNCODE", typeof(string));
+            assignTable.Columns.Add("PRODID", typeof(string));
+
+            foreach (var item in assigns)
+            {
+                assignTable.Rows.Add(
+                    item.OpCode,
+                    item.DesignCode,
+                    item.Prodid);
+            }
+
+          //  _logger.LogInformation("DC_GetGlobalData INPUT Line={Line}, Products={Products}, Workers={Workers}, Assign = {StationAssign}", line.LineNum, products.Count,workers.Count,assigns.Count);
             using var cmd = new SqlCommand("DC_GetDataGlobal", connection);
             cmd.CommandType = CommandType.StoredProcedure;
 
@@ -473,6 +722,12 @@ namespace SmartMRTDashService_Combine
             p2.SqlDbType = SqlDbType.Structured;
             p2.TypeName = "dbo.WorkerInfoType";
 
+            var p3 = cmd.Parameters.AddWithValue("@StationAssign", assignTable);
+            p3.SqlDbType = SqlDbType.Structured;
+            p3.TypeName = "dbo.StationAssignInfoType";
+    //        _logger.LogInformation(
+    //"WorkerTable Rows={Count}",
+    //workerTable.Rows.Count);
             var sam = cmd.Parameters.Add("@TotalSAM", SqlDbType.Decimal);
             sam.Precision = 18;
             sam.Scale = 2;
@@ -512,10 +767,10 @@ namespace SmartMRTDashService_Combine
                     : Convert.ToInt32(numWorkers.Value);
             sw.Stop();
 
-            _logger.LogInformation(
-                "END DC_GetGlobalData Line {Line}: {Ms} ms",
-                line.LineNum,
-                sw.ElapsedMilliseconds);
+            //_logger.LogInformation(
+            //    "END DC_GetGlobalData Line {Line}: {Ms} ms",
+            //    line.LineNum,
+            //    sw.ElapsedMilliseconds);
 
             return new GlobalData
             {
@@ -546,6 +801,59 @@ namespace SmartMRTDashService_Combine
             return (int)runningTarget;
         }
 
+        public async Task<List<ProductionReportData>> BuildProductionReport(List<LineConfig> lines)
+        {
+            var report = new List<ProductionReportData>();
+
+            foreach (var line in lines)
+            {
+                try
+                {
+                    var data = await BuildAllProduction(line);
+
+                    // Await the Task to get the tuple, then access Local/Global
+                    var resultData = await GetLineDataAsync(line);
+                    var workerdata = resultData.Local.Workers;
+                    var products = resultData.Local.Products;
+
+                    report.Add(new ProductionReportData
+                    {
+                        LineNum = data.LineNum,
+                        Output = data.Output,
+                        Target = data.Target,
+                        RunningTarget = data.RunningTarget,
+                        Defect = data.Defect,
+                        Efficiency = data.Efficiency,
+                        IsOnline = data.IsOnline,
+                        // assign the worker list directly (ensure types match)
+                        Workers = workerdata,
+                        Products = products
+                    });
+      
+                }
+                catch (Exception ex)
+                {
+                    //_logger.LogError(
+                    //    ex,
+                    //    "BuildProductionReport failed - Line {LineNum}, LineId={LineId}",
+                    //    line.LineNum,
+                    //    line.LineId);
+
+                    report.Add(new ProductionReportData
+                    {
+                        LineNum = line.LineNum,
+                        Output = 0,
+                        Target = 0,
+                        RunningTarget = 0,
+                        Defect = 0,
+                        Efficiency = 0,
+                        IsOnline = false
+                    });
+                }
+            }
+
+            return report;
+        }
     }
 
 

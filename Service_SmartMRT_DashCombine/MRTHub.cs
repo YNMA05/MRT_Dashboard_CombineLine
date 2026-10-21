@@ -13,6 +13,14 @@ public class MRTHub : Hub
         // to everyone on its own timer. If you want a fresh snapshot
         // immediately on connect (rather than waiting up to 10s), see
         // KpiPollingService.SendSnapshotTo().
+        SignalRConnectionStatus.ClientConnected();
         await base.OnConnectedAsync();
+    }
+
+    public override async Task OnDisconnectedAsync(
+        Exception? exception)
+    {
+        SignalRConnectionStatus.ClientDisconnected();
+        await base.OnDisconnectedAsync(exception);
     }
 }

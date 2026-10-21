@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -33,12 +33,36 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BCrypt.Net-Next, Version=4.0.0.0, Culture=neutral, PublicKeyToken=1e11be04b6288443, processorArchitecture=MSIL">
+      <HintPath>packages\BCrypt.Net-Next.4.0.0\lib\net472\BCrypt.Net-Next.dll</HintPath>
+    </Reference>
+    <Reference Include="BouncyCastle.Crypto, Version=1.9.0.0, Culture=neutral, PublicKeyToken=0e99375e54769942, processorArchitecture=MSIL">
+      <HintPath>packages\Portable.BouncyCastle.1.9.0\lib\net40\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.CodeDom, Version=10.0.0.12, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.CodeDom.10.0.12\lib\net462\System.CodeDom.dll</HintPath>
+    </Reference>
     <Reference Include="System.Core" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Runtime.CompilerServices.Unsafe.4.5.3\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
     <Reference Include="System.Security" />
+    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -50,9 +74,57 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controls\GlassButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\GlassButton.Designer.cs">
+      <DependentUpon>GlassButton.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\GlassDatePicker.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\GlassDatePicker.Designer.cs">
+      <DependentUpon>GlassDatePicker.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ModernComboBox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\ModernComboBox.Designer.cs">
+      <DependentUpon>ModernComboBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmAddModule.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmAddModule.Designer.cs">
+      <DependentUpon>FrmAddModule.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmAddUser.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmAddUser.Designer.cs">
+      <DependentUpon>FrmAddUser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmModuleEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmUpdateSP.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmUpdateSP.Designer.cs">
+      <DependentUpon>FrmUpdateSP.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Logging\ActivityLogger.cs" />
+    <Compile Include="Logging\FolderLog.cs" />
+    <Compile Include="Security\AppSession.cs" />
     <Compile Include="ConfigDashboard.cs" />
     <Compile Include="ConnectionMain.cs" />
     <Compile Include="ConnectionTester.cs" />
+    <Compile Include="Controls\GlassPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\ModernTextBox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="DashboardConfigManager.cs" />
     <Compile Include="FrmUnlockLogin.cs">
       <SubType>Form</SubType>
@@ -61,6 +133,10 @@
       <DependentUpon>FrmUnlockLogin.cs</DependentUpon>
     </Compile>
     <Compile Include="LineInfo.cs" />
+    <Compile Include="LoginForm.cs" />
+    <Compile Include="LoginForm.Designer.cs">
+      <DependentUpon>LoginForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="MRT_DashCombine_Form.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -68,6 +144,9 @@
       <DependentUpon>MRT_DashCombine_Form.cs</DependentUpon>
     </Compile>
     <Compile Include="PasswordEncryption.cs" />
+    <Compile Include="Security\LicenseFile.cs" />
+    <Compile Include="Security\LicensePayload.cs" />
+    <Compile Include="Security\PermissionManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UC_LineCard.cs">
@@ -136,8 +215,26 @@
     <Compile Include="UC_MRT_DashCombine_View.Designer.cs">
       <DependentUpon>UC_MRT_DashCombine_View.cs</DependentUpon>
     </Compile>
+    <Compile Include="WpfControls\WinFormsHostExample.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <EmbeddedResource Include="Controls\GlassDatePicker.resx">
+      <DependentUpon>GlassDatePicker.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmAddModule.resx">
+      <DependentUpon>FrmAddModule.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmAddUser.resx">
+      <DependentUpon>FrmAddUser.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FrmUnlockLogin.resx">
       <DependentUpon>FrmUnlockLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmUpdateSP.resx">
+      <DependentUpon>FrmUpdateSP.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LoginForm.resx">
+      <DependentUpon>LoginForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MRT_DashCombine_Form.resx">
       <DependentUpon>MRT_DashCombine_Form.cs</DependentUpon>
@@ -150,6 +247,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <EmbeddedResource Include="UC_LineCard.resx">
       <DependentUpon>UC_LineCard.cs</DependentUpon>
@@ -172,6 +270,12 @@
     <EmbeddedResource Include="UC_MRT_DashCombine_License.resx">
       <DependentUpon>UC_MRT_DashCombine_License.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="UC_MRT_DashCombine_Logs.resx">
+      <DependentUpon>UC_MRT_DashCombine_Logs.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UC_MRT_DashCombine_Service.resx">
+      <DependentUpon>UC_MRT_DashCombine_Service.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UC_MRT_DashCombine_Setup.resx">
       <DependentUpon>UC_MRT_DashCombine_Setup.cs</DependentUpon>
     </EmbeddedResource>
@@ -188,9 +292,21 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="Security\publickey.pem">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\p2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\smartmrtmenu.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Database\DC_GetDataGlobal.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

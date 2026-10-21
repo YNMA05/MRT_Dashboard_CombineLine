@@ -24,6 +24,7 @@ namespace SmartMRT_DashCombine_Setup
         public string Username { get; set; }
 
         public string Password { get; set; }
+        public bool IsLocalDatabase { get; set; }
     }
 
     public class DashboardSetting

@@ -1,0 +1,13 @@
+{
+  "DashboardDatabase": {
+    "Server": "192.168.0.126",
+    "Instance": "SQLEXPRESS",
+    "Database": "Dashboard_GlobalDB",
+    "Username": "sa",
+    "Password": "AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAdR+pSfkSg0+VbJFR1j6QEgQAAAACAAAAAAAQZgAAAAEAACAAAAB+OximNlRZh85s3l6+Q8MizeLP6x6clgIdfdbzIc4xDQAAAAAOgAAAAAIAACAAAADf+aGwiVeWf42Kij/9793zIA5QX9pSYD23MqB7HniWThAAAAA2QltLis9xNBuI5SR9xNnhQAAAAL83HiLwE3D+XfL4EZt5EfBDHouzdK7QrP20DLIRy+k56xh1eHTDvfPGmD2L4gHbqzL26vRPrwklNfRL7i7KWZA="
+  },
+  "Dashboard": {
+    "RefreshInterval": 10,
+    "SignalRPort": 5000
+  }
+}

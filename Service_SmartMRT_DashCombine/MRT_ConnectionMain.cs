@@ -1,4 +1,8 @@
-﻿namespace SmartMRTDashService_Combine
+﻿using System;
+using System.IO;
+using System.Text.Json;
+
+namespace SmartMRTDashService_Combine
 {
     public class MRT_ConnectionMain
     {
@@ -57,5 +61,27 @@
             $"Connect Timeout=2;" +
             $"TrustServerCertificate=True;";
     }
-}
+
+        public static string GetDashboardConnection()
+        {
+            DashboardConfigManager config = DashboardConfigManager.Load();
+
+            if (config.DashboardDatabase == null)
+            {
+                throw new InvalidOperationException(
+                    "DashboardDatabase settings are missing.");
+            }
+
+            var db = config.DashboardDatabase;
+
+            string password = PasswordEncryption.Decrypt(db.Password);
+
+            return GetSqlConnectionString(
+                db.Server,
+                db.Instance,
+                db.Username,
+                password,
+                db.Database);
+        }
+    }
 }

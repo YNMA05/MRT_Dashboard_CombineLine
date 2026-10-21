@@ -1,0 +1,26 @@
+public static DashboardConfig Load()
+{
+    string configPath = Path.Combine(
+        Environment.GetFolderPath(
+            Environment.SpecialFolder.CommonApplicationData),
+        "SmartMRT_Dashboard",
+        "Config",
+        "DashboardConfig.json");
+
+    if (!File.Exists(configPath))
+    {
+        throw new FileNotFoundException(
+            "DashboardConfig.json was not found.",
+            configPath);
+    }
+
+    string json = File.ReadAllText(configPath);
+
+    return JsonSerializer.Deserialize<DashboardConfig>(
+        json,
+        new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        }) ?? throw new InvalidOperationException(
+            "Failed to load DashboardConfig.json.");
+}
